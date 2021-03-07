@@ -7,12 +7,13 @@ import threading
 deviceIndex = 10
 
 entryList = []
-
 class Entry:
-    def __init__(self, fileName, hotkeyList):
+    def __init__(self, fileName, hotkey):
         self.fileName = 'Sounds/' + fileName + '.wav'
-        self.hotkeyList = hotkeyList
+        self.hotkey = hotkey
         entryList.append(self)
+
+exampleSound = Entry('Ricardo boink', 'ctrl+l+d+f')
 
 chunk = 1024
 def play_sound_entry(fileName):
@@ -34,16 +35,9 @@ def play_sound_entry(fileName):
     stream.close()
     portAuidoInterface.terminate()
 
-eatPussyWithLips = Entry('Ricardo Pussy with lips', ['ctrl+l'])
-
 playCurrentSoundEntry = True
 while True:
     for soundEntry in entryList:
         playCurrentSoundEntry = True
-        for hotkey in soundEntry.hotkeyList:
-            if not keyboard.is_pressed(hotkey):
-                playCurrentSoundEntry = False
-            if not playCurrentSoundEntry:
-                break
-        if playCurrentSoundEntry:
+        if keyboard.is_pressed(soundEntry.hotkey):
             play_sound_entry(soundEntry.fileName)
