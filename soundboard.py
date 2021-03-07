@@ -3,7 +3,11 @@ import wave
 import sys
 import keyboard
 import threading
+import time
 
+stopAllSoundsHotkey = 'ctrl+.'
+portAudioInterface = pyaudio.PyAudio()
+chunk = 2048
 deviceIndex = 10
 
 entryList = []
@@ -11,33 +15,30 @@ class Entry:
     def __init__(self, fileName, hotkey):
         self.fileName = 'Sounds/' + fileName + '.wav'
         self.hotkey = hotkey
-        entryList.append(self)
+        self.playSoundThread = threading.Thread(target=self.play_sound_entry)
+        self.playSoundThread.start()
+    def play_sound_entry(self):
+        while True:
+            self.waveFile = wave.open(self.fileName, 'rb')
+            self.stream = portAudioInterface.open(
+                output_device_index = deviceIndex,
+                format = portAudioInterface.get_format_from_width(self.waveFile.getsampwidth()),
+                channels = self.waveFile.getnchannels(),
+                rate = self.waveFile.getframerate(),
+                output = True
+            )
+            while True:
+                if keyboard.is_pressed(self.hotkey):
+                    break
+                time.sleep(0.1)
+            data = self.waveFile.readframes(chunk)
+            while data:
+                data = self.waveFile.readframes(chunk)
+                self.stream.write(data)
+                if keyboard.is_pressed(stopAllSoundsHotkey):
+                    break
+            self.stream.stop_stream()
+            self.stream.close()
 
-exampleSound = Entry('Ricardo boink', 'ctrl+l+d+f')
-
-chunk = 1024
-def play_sound_entry(fileName):
-    waveFile = wave.open(fileName, 'rb')
-    portAuidoInterface = pyaudio.PyAudio()
-    stream = portAuidoInterface.open(
-        output_device_index = deviceIndex,
-        format = portAuidoInterface.get_format_from_width(waveFile.getsampwidth()),
-        channels = waveFile.getnchannels(),
-        rate = waveFile.getframerate(),
-        output = True)
-    data = waveFile.readframes(chunk)
-    while len(data) > 0:
-        stream.write(data)
-        data = waveFile.readframes(chunk)
-        if keyboard.is_pressed('ctrl+.'):
-            break
-    stream.stop_stream()
-    stream.close()
-    portAuidoInterface.terminate()
-
-playCurrentSoundEntry = True
-while True:
-    for soundEntry in entryList:
-        playCurrentSoundEntry = True
-        if keyboard.is_pressed(soundEntry.hotkey):
-            play_sound_entry(soundEntry.fileName)
+exampleSound = Entry('Ricardo boink', 'ctrl+1')
+exampleSound2 = Entry('no i didnt', 'ctrl+2')
