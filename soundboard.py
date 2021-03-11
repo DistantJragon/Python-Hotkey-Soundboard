@@ -9,7 +9,7 @@ import time
 stopAllSoundsHotkey = 'ctrl+.' # Default: 'ctrl+.'
 delayBeforeRestartSound = 0.2 # Prevents rapid-fire playing of sounds. Default: 0.2
 chunk = 2048 # As I understand it, a buffer for pyAudio. This program defaults in to 2048. PyAudio defaulted it to 1024.
-deviceIndex = 10 # Find the Device ID of your speakers or yout Virtual Audio Cable with seeIndeciesOfDevices.py (Probably required). Default: 10
+deviceIndex = 10 # Find the Device ID of your speakers or your Virtual Audio Cable with seeIndeciesOfDevices.py (Probably required). Default: 10
 streamsPerSoundEntry = 3 # How many times the same sound can overlap itself. Default: 3
 stopAllSoundsWithNewSound = False # Stops all sounds if a new sound plays. Default: False
 
@@ -84,12 +84,10 @@ def detect_press_hotkey():
 						stream.isPlaying = True
 						soundEntry.timeAtLastPlay = time.time()
 						stream.timeAtLastPlay = time.time()
-						print(1)
 						break
 					else:
 						soundEntry.allStreamsArePlaying = True
 				if soundEntry.allStreamsArePlaying and time.time() - soundEntry.timeAtLastPlay >= delayBeforeRestartSound:
-					print(2)
 					soundEntry.streamWithEarliestPlay(soundEntry.streamList).waveFile = wave.open(stream.fileName, 'rb')
 					soundEntry.streamWithEarliestPlay(soundEntry.streamList).timeAtLastPlay = time.time()
 					soundEntry.timeAtLastPlay = time.time()
