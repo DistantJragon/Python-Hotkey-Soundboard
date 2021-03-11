@@ -92,7 +92,8 @@ def detect_press_hotkey():
 					soundEntry.allStreamsArePlaying = False
 			if keyboard.is_pressed(soundEntry.hotkey) and time.time() - soundEntry.timeAtLastPlay >= delayBeforeRestartSound:
 				currentSoundPlaying = soundEntry
-				randomSound.fileName = 'Sounds/' + soundFiles[randomInteger(0, len(soundFiles) - 1)] + '.wav'
+				if randomSound:
+					randomSound.fileName = 'Sounds/' + soundFiles[randomInteger(0, len(soundFiles) - 1)] + '.wav'
 				for stream in soundEntry.streamList:
 					if not stream.isPlaying:
 						stream.playSoundThread = threading.Thread(target=stream.play_sound_entry)
