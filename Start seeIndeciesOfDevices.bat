@@ -1,2 +1,3 @@
+TITLE Viewing Indecies of Devices
 Pushd "%~dp0"
-"%~dp0.venv\Scripts\python.exe" seeIndeciesOfDevices.py
+cmd /k "%~dp0.venv\Scripts\python.exe" seeIndeciesOfDevices.py
