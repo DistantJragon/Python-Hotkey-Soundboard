@@ -9,6 +9,8 @@
 3. Add sound entries following the example sounds giving within soundboard.py (exampleSound = Entr...)
 4. Start the program with "Start soundboard.bat" and cause chaos
 
+Note: Only wave files work. Make sure sounds have a consistent sample rate and number of channels
+
 ###### Start When User Logs Into Windows
 
 You can have this program start when you log in to Windows by either
