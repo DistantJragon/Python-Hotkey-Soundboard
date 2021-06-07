@@ -1,5 +1,5 @@
 # Python-Hotkey-Soundboard
-(Only 64-Bit is guaranteed)
+(Only 64-bit OS is guaranteed to work with this program)
 ## Easy program that plays WAV files when you press a key or combination of keys.
 
 ###### Adding Sounds and Hotkeys
