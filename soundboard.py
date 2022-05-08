@@ -17,7 +17,7 @@ stopAllSoundsHotkey = options['stopAllSoundsHotkey']['state']
 delayBeforeRestartSound = options['delayBeforeRestartSound']['state']
 chunk = options['chunk']['state']
 deviceIndex = options['deviceIndex']['state']
-streamsPerSoundEntry = options['streamsPerSoundEntry']['state']
+defaultStreamsPerSoundEntry = options['defaultStreamsPerSoundEntry']['state']
 stopAllSoundsWithNewSound = options['stopAllSoundsWithNewSound']['state']
 
 
