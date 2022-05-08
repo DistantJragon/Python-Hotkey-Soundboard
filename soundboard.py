@@ -9,14 +9,17 @@ import random
 import json
 
 # Options
-makeGroupWithAllSounds = False # Makes a sound entry using every sound in the Sounds folder that plays in a random order. Default: False
-allSoundsGroupHotkey = 'ctrl+num /' # Default: 'ctrl+num /'
-stopAllSoundsHotkey = 'ctrl+.' # Default: 'ctrl+.'
-delayBeforeRestartSound = 0.1 # Prevents rapid-fire playing of sounds. Default: 0.1
-chunk = 2048 # As I understand it, a buffer for pyAudio. This program defaults it to 2048. PyAudio defaulted it to 1024.
-deviceIndex = 10 # Find the Device ID of your speakers or your Virtual Audio Cable with seeIndeciesOfDevices.py (Probably required). Default: 10
-streamsPerSoundEntry = 3 # How many times the same sound can overlap itself. Default: 3
-stopAllSoundsWithNewSound = False # Stops all sounds if a new sound plays. Default: False
+jsonFile = open('optionsList.json')
+jsonData = json.load(jsonFile)
+options = jsonData['options']
+makeGroupWithAllSounds = options['makeGroupWithAllSounds']['state'] # Makes a sound entry using every sound in the Sounds folder that plays in a random order. Default: False
+allSoundsGroupHotkey = options['allSoundsGroupHotkey']['state'] # Default: 'ctrl+num /'
+stopAllSoundsHotkey = options['stopAllSoundsHotkey']['state'] # Default: 'ctrl+.'
+delayBeforeRestartSound = options['delayBeforeRestartSound']['state'] # Prevents rapid-fire playing of sounds. Default: 0.1
+chunk = options['chunk']['state'] # As I understand it, a buffer for pyAudio. This program defaults it to 2048. PyAudio defaulted it to 1024.
+deviceIndex = options['deviceIndex']['state'] # Find the Device ID of your speakers or your Virtual Audio Cable with seeIndeciesOfDevices.py (Probably required). Default: 10
+streamsPerSoundEntry = options['streamsPerSoundEntry']['state'] # How many times the same sound can overlap itself. Default: 3
+stopAllSoundsWithNewSound = options['stopAllSoundsWithNewSound']['state'] # Stops all sounds if a new sound plays. Default: False
 
 # Code
 def randomInteger(min, max):
@@ -24,6 +27,7 @@ def randomInteger(min, max):
 	return x
 
 portAudioInterface = pyaudio.PyAudio()
+print("Device ID ", deviceIndex, " - ", portAudioInterface.get_device_info_by_host_api_device_index(0, deviceIndex).get('name'))
 class Stream:
 	def __init__(self, fileName, parent):
 		self.parent = parent
@@ -52,13 +56,13 @@ class Stream:
 
 soundEntryList = {}
 class Entry:
-	def __init__(self, fileName):
+	def __init__(self, fileName, numberOfStreams):
 		global soundEntryList
 		self.fileName = 'Sounds/' + fileName + '.wav'
 		self.streamList = []
 		self.allStreamsArePlaying = False
 		self.timeAtLastPlay = time.time()
-		while len(self.streamList) < streamsPerSoundEntry:
+		while len(self.streamList) < numberOfStreams:
 			self.streamList.append(Stream(fileName, self))
 		soundEntryList[fileName] = self
 	def streamWithEarliestPlay(self):
@@ -81,13 +85,13 @@ groupList = []
 
 if makeGroupWithAllSounds:
 	soundFilesNames = getAllSoundFileNames()
-	allSoundsDictionary = {'playRandomly':True, 'hotkeys':[allSoundsGroupHotkey]}
+	allSoundsDictionary = {'playRandomly':True, 'hotkeys':[allSoundsGroupHotkey], 'numberOfStreams':1}
 	allSoundsDictionary['sounds'] = []
 	for sound in soundFilesNames:
 		allSoundsDictionary['sounds'].append({'name':sound, 'weight':1})
 	groupList.append(allSoundsDictionary)
 	for sound in soundFilesNames:
-		Entry(sound)
+		Entry(sound, 1)
 
 jsonFile = open('groupList.json')
 jsonData = json.load(jsonFile)
@@ -97,7 +101,7 @@ for key in groupEntriesKeys:
 	groupList.append(groupEntries[key])
 	if not makeGroupWithAllSounds:
 		for sound in groupEntries[key]['sounds']:
-			Entry(sound['name'])
+			Entry(sound['name'], groupEntries[key]['numberOfStreams'])
 
 for group in groupList:
 	group['weightSum'] = 0

@@ -4,7 +4,7 @@
             "description":"Makes a sound entry using every sound in the Sounds folder that plays in a random order. Default: false",
             "state":false},
         "allSoundsGroupHotkey":{
-            "description":"Default: 'ctrl+num /",
+            "description":"Default: ctrl+num /",
             "state":"ctrl+num /"},
         "stopAllSoundsHotkey":{
             "description":"Default: ctrl+.",
@@ -18,7 +18,7 @@
         "deviceIndex":{
             "description":"Find the Device ID of your speakers or your Virtual Audio Cable with seeIndeciesOfDevices.py (Probably required). Default: 10",
             "state":10},
-        "streamsPerSoundEntry":{
+        "defaultStreamsPerSoundEntry":{
             "description":"The amount of times the same sound can overlap itself. Default: 3",
             "state":3},
         "stopAllSoundsWithNewSound":{
