@@ -67,7 +67,7 @@ soundEntryList = {}
 class Entry:
 	def __init__(self, file_name, number_of_streams):
 		global soundEntryList
-		self.fileName = 'Sounds/' + file_name + '.wav'
+		self.fileName = 'Sounds/' + file_name
 		self.streamList = []
 		self.allStreamsArePlaying = False
 		self.timeAtLastPlay = time.time()
@@ -102,7 +102,7 @@ if makeGroupWithAllSounds:
 		allSoundsDictionary['sounds'].append({'name': sound, 'weight': 1})
 	groupList.append(allSoundsDictionary)
 	for sound in soundFilesNames:
-		Entry(sound, 1)
+		Entry(sound + '.wav', 1)
 
 groupFile = open('groupList.json')
 groupData = json.load(groupFile)
@@ -112,7 +112,7 @@ for key in groupEntriesKeys:
 	groupList.append(groupEntries[key])
 	if not makeGroupWithAllSounds:
 		for sound in groupEntries[key]['sounds']:
-			Entry(sound['name'], groupEntries[key]['numberOfStreams'])
+			Entry(sound['name'] + '.wav', groupEntries[key]['numberOfStreams'])
 
 for group in groupList:
 	group['weightSum'] = 0
