@@ -34,7 +34,7 @@ print("Device ID ", deviceIndex, " - ", currentDeviceName)
 class Stream:
 	def __init__(self, file_name, parent):
 		self.parent = parent
-		self.waveFile = wave.open(file_name, 'rb')
+		self.waveFile = wave.open('Sounds/' + file_name, 'rb')
 		self.stream = portAudioInterface.open(
 			output_device_index=deviceIndex,
 			format=portAudioInterface.get_format_from_width(self.waveFile.getsampwidth()),
