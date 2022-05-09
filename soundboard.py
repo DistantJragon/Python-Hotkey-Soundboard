@@ -34,7 +34,8 @@ print("Device ID ", deviceIndex, " - ", currentDeviceName)
 class Stream:
 	def __init__(self, file_name, parent):
 		self.parent = parent
-		self.waveFile = wave.open('Sounds/' + file_name, 'rb')
+		self.filePath = 'Sounds/' + file_name
+		self.waveFile = wave.open(self.filePath, 'rb')
 		self.stream = portAudioInterface.open(
 			output_device_index=deviceIndex,
 			format=portAudioInterface.get_format_from_width(self.waveFile.getsampwidth()),
@@ -47,7 +48,7 @@ class Stream:
 		self.playSoundThread = threading.Thread(target=self.play_sound_entry)
 
 	def play_sound_entry(self):
-		self.waveFile = wave.open(self.parent.fileName, 'rb')
+		self.waveFile = wave.open(self.filePath, 'rb')
 		data = self.waveFile.readframes(chunk)
 		while data:
 			data = self.waveFile.readframes(chunk)
@@ -151,13 +152,13 @@ def play_sound_group(sound_group):
 		random_number = random.random() * sound_group['weightSum']
 		for current_sound in sound_group['sounds']:
 			if random_number <= current_sound['weight']:
-				play_sound(soundEntryList[current_sound['name']])
+				play_sound(soundEntryList[current_sound['name'] + ".wav"])
 				break
 			else:
 				random_number -= current_sound['weight']
 	else:
 		sound_in_front_of_line = sound_group['sounds'][sound_group['orderTracker']]
-		play_sound(soundEntryList[sound_in_front_of_line['name']])
+		play_sound(soundEntryList[sound_in_front_of_line['name'] + ".wav"])
 		sound_group['orderTracker'] += 1
 		if sound_group['orderTracker'] > len(sound_group['sounds']) - 1:
 			sound_group['orderTracker'] = 0
