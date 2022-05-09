@@ -11,14 +11,18 @@ import json
 optionsFile = open('optionsList.json')
 optionsData = json.load(optionsFile)
 options = optionsData['options']
+
 makeGroupWithAllSounds = options['makeGroupWithAllSounds']['state']
 allSoundsGroupHotkey = options['allSoundsGroupHotkey']['state']
 stopAllSoundsHotkey = options['stopAllSoundsHotkey']['state']
 delayBeforeRestartSound = options['delayBeforeRestartSound']['state']
 chunk = options['chunk']['state']
 deviceIndex = options['deviceIndex']['state']
+deviceName = options['deviceName']['state']
 defaultStreamsPerSoundEntry = options['defaultStreamsPerSoundEntry']['state']
 stopAllSoundsWithNewSound = options['stopAllSoundsWithNewSound']['state']
+pollForKeyboard = options['pollForKeyboard']['state']
+pollingRate = options['pollingRate']['state']
 
 
 def random_integer(min_range, max_range):
