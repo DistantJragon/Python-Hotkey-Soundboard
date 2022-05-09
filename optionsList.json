@@ -16,8 +16,8 @@
             "description":"As I understand it, a buffer for pyAudio. This program defaults it to 2048. PyAudio defaulted it to 1024",
             "state":2048},
         "deviceIndex":{
-            "description":"Find the Device ID of your speakers or your Virtual Audio Cable with seeIndeciesOfDevices.py (Probably required). Default: 10",
-            "state":10},
+            "description":"Find the Device ID of your speakers or your Virtual Audio Cable with seeIndicesOfDevices.py (Probably required). Default: 0",
+            "state":15},
         "defaultStreamsPerSoundEntry":{
             "description":"The amount of times the same sound can overlap itself. Default: 3",
             "state":3},
