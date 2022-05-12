@@ -41,6 +41,14 @@ streamsList = []
 currentSoundPlaying = None
 
 
+def stream_with_earliest_play(stream_list):
+	earliest_stream = stream_list[0]
+	for stream in stream_list:
+		if stream.timeAtLastPlay < earliest_stream.timeAtLastPlay:
+			earliest_stream = stream
+	return earliest_stream
+
+
 class Stream:
 	def __init__(self, template_wav):
 		self.format = portAudioInterface.get_format_from_width(template_wav.getsampwidth())
@@ -121,14 +129,6 @@ def get_all_sound_file_names():
 			continue
 		sound_files_names[i] = sound_files_names[i][:-4]
 	return sound_files_names
-
-
-def stream_with_earliest_play(stream_list):
-	earliest_stream = stream_list[0]
-	for stream in stream_list:
-		if stream.timeAtLastPlay < earliest_stream.timeAtLastPlay:
-			earliest_stream = stream
-	return earliest_stream
 
 
 groupList = []
