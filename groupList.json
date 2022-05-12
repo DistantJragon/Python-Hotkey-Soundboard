@@ -4,7 +4,7 @@
             "sounds":[
                 {"name":"anime wow", "weight":3},
                 {"name":"windows error", "weight":7},
-                {"name":"sad trombone", "weight":50}
+                {"name":"sad trombone", "weight":40}
             ] },
         "example2":{ "playRandomly":false, "hotkeys":["ctrl+1+num 3"],
             "sounds":[

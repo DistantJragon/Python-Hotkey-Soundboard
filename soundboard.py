@@ -8,52 +8,45 @@ import math
 import random
 import json
 
-optionsFile = open('optionsList.json')
-optionsData = json.load(optionsFile)
-options = optionsData['options']
-
-makeGroupWithAllSounds = options['makeGroupWithAllSounds']['state']
-allSoundsGroupHotkey = options['allSoundsGroupHotkey']['state']
-stopAllSoundsHotkey = options['stopAllSoundsHotkey']['state']
-delayBeforeRestartSound = options['delayBeforeRestartSound']['state']
-chunk = options['chunk']['state']
-deviceIndex = options['deviceIndex']['state']
-deviceName = options['deviceName']['state']
-numberOfStreams = options['numberOfStreams']['state']
-stopAllSoundsWithNewSound = options['stopAllSoundsWithNewSound']['state']
-pollForKeyboard = options['pollForKeyboard']['state']
-pollingRate = options['pollingRate']['state']
-
-if deviceIndex == -1:
-    deviceIndex = None
-
 
 def random_integer(min_range, max_range):
     x = math.floor(random.random() * (max_range - min_range + 1) + min_range)
     return x
 
 
+def get_all_sound_file_names():
+    sound_files_names = [fileName for fileName in os.listdir('Sounds')]
+    for i in range(len(sound_files_names)):
+        if '.wav' not in sound_files_names[i]:
+            sound_files_names.pop(i)
+            continue
+        sound_files_names[i] = sound_files_names[i][:-4]
+    return sound_files_names
+
+
 portAudioInterface = pyaudio.PyAudio()
-if deviceIndex is None:
-    print("Using default Windows playback device")
-else:
-    currentDeviceName = portAudioInterface.get_device_info_by_host_api_device_index(0, deviceIndex).get('name')
-    print("Using playback device ID ", deviceIndex, " - ", currentDeviceName)
 
-streamsList = []
+
+def print_playback_device(device_index):
+    if device_index is None:
+        print("Using default Windows playback device")
+    else:
+        current_device_name = portAudioInterface.get_device_info_by_host_api_device_index(0, device_index).get('name')
+        print("Using playback device ID ", device_index, " - ", current_device_name)
+
+
+optionsFile = open('optionsList.json')
+optionsData = json.load(optionsFile)
+options = optionsData['options']
 currentSoundPlaying = None
-
-
-def stream_with_earliest_play(stream_list):
-    earliest_stream = stream_list[0]
-    for stream in stream_list:
-        if stream.timeAtLastPlay < earliest_stream.timeAtLastPlay:
-            earliest_stream = stream
-    return earliest_stream
+deviceIndex = options['deviceIndex']['state']
+if deviceIndex == -1:
+    deviceIndex = None
 
 
 class Stream:
     def __init__(self, template_wav):
+        global portAudioInterface, deviceIndex
         self.format = portAudioInterface.get_format_from_width(template_wav.getsampwidth())
         self.channels = template_wav.getnchannels()
         self.rate = template_wav.getframerate()
@@ -70,13 +63,16 @@ class Stream:
         self.wav = None
 
     def play_sound_entry(self):
-        global currentSoundPlaying
+        global currentSoundPlaying, options
+        stop_all_sounds_with_new_sound = options['stopAllSoundsWithNewSound']['state']
+        stop_all_sounds_hotkey = options['stopAllSoundsHotkey']['state']
+        chunk = options['chunk']['state']
         data = self.wav.readframes(chunk)
         while data:
             data = self.wav.readframes(chunk)
             self.stream.write(data)
-            stop_sound = keyboard.is_pressed(stopAllSoundsHotkey)
-            stop_sound = stop_sound or (stopAllSoundsWithNewSound and self.wav is not currentSoundPlaying)
+            stop_sound = keyboard.is_pressed(stop_all_sounds_hotkey)
+            stop_sound = stop_sound or (stop_all_sounds_with_new_sound and self.wav is not currentSoundPlaying)
             if stop_sound:
                 break
         self.isPlaying = False
@@ -89,7 +85,15 @@ class Stream:
         self.wav = wave.open(file_path, 'rb')
 
 
-soundEntryList = {}
+def stream_with_earliest_play(stream_list):
+    earliest_stream = stream_list[0]
+    for stream in stream_list:
+        if stream.timeAtLastPlay < earliest_stream.timeAtLastPlay:
+            earliest_stream = stream
+    return earliest_stream
+
+
+streamsList = []
 
 
 def find_matching_stream(stream_format, n_channels, rate):
@@ -105,10 +109,13 @@ def find_matching_stream(stream_format, n_channels, rate):
     return None
 
 
+soundEntryList = {}
+delayBeforeRestartSound = options['delayBeforeRestartSound']['state']
+
+
 class Entry:
     def __init__(self, file_name, number_of_streams):
-        global soundEntryList
-        global streamsList
+        global soundEntryList, portAudioInterface, streamsList
         self.filePath = 'Sounds/' + file_name
         self.timeAtLastPlay = time.time()
         self.wav = wave.open(self.filePath, 'rb')
@@ -123,46 +130,8 @@ class Entry:
             streamsList.append(new_streams)
 
 
-def get_all_sound_file_names():
-    sound_files_names = [fileName for fileName in os.listdir('Sounds')]
-    for i in range(len(sound_files_names)):
-        if '.wav' not in sound_files_names[i]:
-            sound_files_names.pop(i)
-            continue
-        sound_files_names[i] = sound_files_names[i][:-4]
-    return sound_files_names
-
-
-groupList = []
-
-if makeGroupWithAllSounds:
-    soundFilesNames = get_all_sound_file_names()
-    allSoundsDictionary = {'playRandomly': True, 'hotkeys': [allSoundsGroupHotkey], 'sounds': []}
-    for sound in soundFilesNames:
-        allSoundsDictionary['sounds'].append({'name': sound, 'weight': 1})
-    groupList.append(allSoundsDictionary)
-    for sound in soundFilesNames:
-        Entry(sound + '.wav', numberOfStreams)
-
-groupFile = open('groupList.json')
-groupData = json.load(groupFile)
-groupEntries = groupData['groupEntries']
-groupEntriesKeys = groupEntries.keys()
-for key in groupEntriesKeys:
-    groupList.append(groupEntries[key])
-    if not makeGroupWithAllSounds:
-        for sound in groupEntries[key]['sounds']:
-            Entry(sound['name'] + '.wav', numberOfStreams)
-
-for group in groupList:
-    group['weightSum'] = 0
-    for sound in group['sounds']:
-        group['weightSum'] += sound['weight']
-    group['orderTracker'] = 0
-
-
 def play_sound(sound_entry):
-    global currentSoundPlaying
+    global currentSoundPlaying, delayBeforeRestartSound
     if time.time() - sound_entry.timeAtLastPlay <= delayBeforeRestartSound:
         return
     sound_entry.timeAtLastPlay = time.time()
@@ -186,6 +155,36 @@ def play_sound(sound_entry):
         earliest_stream.timeAtLastPlay = time.time()
 
 
+groupList = []
+numberOfStreams = options['numberOfStreams']['state']
+
+
+def make_group_and_entries_with_all_sounds():
+    global groupList, options, numberOfStreams
+    all_sounds_group_hotkey = options['allSoundsGroupHotkey']['state']
+    sound_files_names = get_all_sound_file_names()
+    all_sounds_dictionary = {'playRandomly': True, 'hotkeys': [all_sounds_group_hotkey], 'sounds': []}
+    for sound_file in sound_files_names:
+        all_sounds_dictionary['sounds'].append({'name': sound_file, 'weight': 1})
+    groupList.append(all_sounds_dictionary)
+    for sound_file in sound_files_names:
+        Entry(sound_file + '.wav', numberOfStreams)
+
+
+def add_group_file_to_group_list():
+    group_file = open('groupList.json')
+    group_data = json.load(group_file)
+    group_entries = group_data['groupEntries']
+    group_entries_keys = group_entries.keys()
+    make_group_with_all_sounds = options['makeGroupWithAllSounds']['state']
+
+    for key in group_entries_keys:
+        groupList.append(group_entries[key])
+        if not make_group_with_all_sounds:
+            for sound_file_name in group_entries[key]['sounds']:
+                Entry(sound_file_name['name'] + '.wav', numberOfStreams)
+
+
 def play_sound_group(sound_group):
     if sound_group['playRandomly']:
         random_number = random.random() * sound_group['weightSum']
@@ -203,42 +202,66 @@ def play_sound_group(sound_group):
             sound_group['orderTracker'] = 0
 
 
-if not pollForKeyboard:
-    for group in groupList:
-        for hotkey in group['hotkeys']:
-            keyboard.add_hotkey(hotkey, play_sound_group, args=(group,), timeout=delayBeforeRestartSound)
-
-
 def keep_program_running_events():
     input()
     keyboard.unhook_all_hotkeys()
 
 
 def check_keys():
+    global delayBeforeRestartSound
     for t_group in groupList:
         for t_hotkey in t_group['hotkeys']:
             if keyboard.is_pressed(t_hotkey):
                 play_sound_group(t_group)
                 time.sleep(delayBeforeRestartSound)
+                break
 
 
 userQuit = False
+pollingRate = options['pollingRate']['state']
 
 
 def keep_program_running_poll():
-    global userQuit
+    global userQuit, pollingRate
     while not userQuit:
         check_keys()
         time.sleep(pollingRate)
 
 
-if pollForKeyboard:
-    keepRunningThread = threading.Thread(target=keep_program_running_poll)
-    keepRunningThread.start()
-    print('Ready! Since polling is on, the program will not print what sound was played')
-    input()
-    userQuit = True
-else:
-    keepRunningThread = threading.Thread(target=keep_program_running_events)
-    keepRunningThread.start()
-    print('Ready!')
+def add_fields_to_groups():
+    for group in groupList:
+        group['weightSum'] = 0
+        for sound in group['sounds']:
+            group['weightSum'] += sound['weight']
+        group['orderTracker'] = 0
+
+
+def hook_hotkeys():
+    global groupList, delayBeforeRestartSound
+    for group in groupList:
+        for hotkey in group['hotkeys']:
+            keyboard.add_hotkey(hotkey, play_sound_group, args=(group,), timeout=delayBeforeRestartSound)
+
+
+if __name__ == "__main__":
+    makeGroupWithAllSounds = options['makeGroupWithAllSounds']['state']
+    # deviceName = options['deviceName']['state']
+    pollForKeyboard = options['pollForKeyboard']['state']
+    print_playback_device(deviceIndex)
+
+    if makeGroupWithAllSounds:
+        make_group_and_entries_with_all_sounds()
+    add_group_file_to_group_list()
+    add_fields_to_groups()
+
+    if pollForKeyboard:
+        keepRunningThread = threading.Thread(target=keep_program_running_poll)
+        keepRunningThread.start()
+        print('Ready! Since polling is on, the program will not print what sound was played')
+        input()
+        userQuit = True
+    else:
+        hook_hotkeys()
+        keepRunningThread = threading.Thread(target=keep_program_running_events)
+        keepRunningThread.start()
+        print('Ready!')
