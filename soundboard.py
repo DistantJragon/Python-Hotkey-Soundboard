@@ -219,6 +219,7 @@ def check_keys():
         for t_hotkey in t_group['hotkeys']:
             if keyboard.is_pressed(t_hotkey):
                 play_sound_group(t_group)
+                time.sleep(delayBeforeRestartSound)
 
 
 userQuit = False
@@ -226,18 +227,18 @@ userQuit = False
 
 def keep_program_running_poll():
     global userQuit
-    pre_time = time.time()
     while not userQuit:
         check_keys()
-    print(pre_time - time.time())
+        time.sleep(pollingRate)
 
 
 if pollForKeyboard:
     keepRunningThread = threading.Thread(target=keep_program_running_poll)
     keepRunningThread.start()
+    print('Ready! Since polling is on, the program will not print what sound was played')
     input()
     userQuit = True
 else:
     keepRunningThread = threading.Thread(target=keep_program_running_events)
     keepRunningThread.start()
-print('Ready!')
+    print('Ready!')
