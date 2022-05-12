@@ -34,8 +34,11 @@ def random_integer(min_range, max_range):
 
 
 portAudioInterface = pyaudio.PyAudio()
-currentDeviceName = portAudioInterface.get_device_info_by_host_api_device_index(0, deviceIndex).get('name')
-print("Device ID ", deviceIndex, " - ", currentDeviceName)
+if deviceIndex is None:
+	print("Using default Windows playback device")
+else:
+	currentDeviceName = portAudioInterface.get_device_info_by_host_api_device_index(0, deviceIndex).get('name')
+	print("Using playback device ID ", deviceIndex, " - ", currentDeviceName)
 
 streamsList = []
 currentSoundPlaying = None
@@ -135,12 +138,12 @@ groupList = []
 
 if makeGroupWithAllSounds:
 	soundFilesNames = get_all_sound_file_names()
-	allSoundsDictionary = {'playRandomly': True, 'hotkeys': [allSoundsGroupHotkey], 'numberOfStreams': 1, 'sounds': []}
+	allSoundsDictionary = {'playRandomly': True, 'hotkeys': [allSoundsGroupHotkey], 'sounds': []}
 	for sound in soundFilesNames:
 		allSoundsDictionary['sounds'].append({'name': sound, 'weight': 1})
 	groupList.append(allSoundsDictionary)
 	for sound in soundFilesNames:
-		Entry(sound + '.wav', 1)
+		Entry(sound + '.wav', numberOfStreams)
 
 groupFile = open('groupList.json')
 groupData = json.load(groupFile)
@@ -150,7 +153,7 @@ for key in groupEntriesKeys:
 	groupList.append(groupEntries[key])
 	if not makeGroupWithAllSounds:
 		for sound in groupEntries[key]['sounds']:
-			Entry(sound['name'] + '.wav', groupEntries[key]['numberOfStreams'])
+			Entry(sound['name'] + '.wav', numberOfStreams)
 
 for group in groupList:
 	group['weightSum'] = 0
