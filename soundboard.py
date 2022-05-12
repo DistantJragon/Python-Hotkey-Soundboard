@@ -19,10 +19,13 @@ delayBeforeRestartSound = options['delayBeforeRestartSound']['state']
 chunk = options['chunk']['state']
 deviceIndex = options['deviceIndex']['state']
 deviceName = options['deviceName']['state']
-defaultStreamsPerSoundEntry = options['defaultStreamsPerSoundEntry']['state']
+numberOfStreams = options['numberOfStreams']['state']
 stopAllSoundsWithNewSound = options['stopAllSoundsWithNewSound']['state']
 pollForKeyboard = options['pollForKeyboard']['state']
 pollingRate = options['pollingRate']['state']
+
+if deviceIndex == -1:
+	deviceIndex = None
 
 
 def random_integer(min_range, max_range):
@@ -34,58 +37,80 @@ portAudioInterface = pyaudio.PyAudio()
 currentDeviceName = portAudioInterface.get_device_info_by_host_api_device_index(0, deviceIndex).get('name')
 print("Device ID ", deviceIndex, " - ", currentDeviceName)
 
+streamsList = []
+currentSoundPlaying = None
+
 
 class Stream:
-	def __init__(self, file_name, parent):
-		self.parent = parent
-		self.filePath = 'Sounds/' + file_name
-		self.waveFile = wave.open(self.filePath, 'rb')
+	def __init__(self, template_wav):
+		self.format = portAudioInterface.get_format_from_width(template_wav.getsampwidth())
+		self.channels = template_wav.getnchannels()
+		self.rate = template_wav.getframerate()
 		self.stream = portAudioInterface.open(
 			output_device_index=deviceIndex,
-			format=portAudioInterface.get_format_from_width(self.waveFile.getsampwidth()),
-			channels=self.waveFile.getnchannels(),
-			rate=self.waveFile.getframerate(),
+			format=self.format,
+			channels=self.channels,
+			rate=self.rate,
 			output=True
 		)
 		self.timeAtLastPlay = time.time()
 		self.isPlaying = False
-		self.playSoundThread = threading.Thread(target=self.play_sound_entry)
+		self.playSoundThread = None
+		self.wav = None
 
-	def play_sound_entry(self):
-		self.waveFile = wave.open(self.filePath, 'rb')
-		data = self.waveFile.readframes(chunk)
+	def play_sound_entry(self, file_path):
+		global currentSoundPlaying
+		self.set_wav(file_path)
+		data = self.wav.readframes(chunk)
 		while data:
-			data = self.waveFile.readframes(chunk)
+			data = self.wav.readframes(chunk)
 			self.stream.write(data)
 			stop_sound = keyboard.is_pressed(stopAllSoundsHotkey)
-			stop_sound = stop_sound or (stopAllSoundsWithNewSound and self.parent is not currentSoundPlaying)
+			stop_sound = stop_sound or (stopAllSoundsWithNewSound and self.wav is not currentSoundPlaying)
 			if stop_sound:
 				break
 		self.isPlaying = False
-		self.parent.allStreamsArePlaying = False
 		return
+
+	def get_thread_play_sound(self, entry):
+		return threading.Thread(target=self.play_sound_entry, args=(entry.filePath,))
+
+	def set_wav(self, file_path):
+		self.wav = wave.open(file_path, 'rb')
 
 
 soundEntryList = {}
 
 
+def find_matching_stream(stream_format, n_channels, rate):
+	global streamsList
+	for streams in streamsList:
+		if streams[0].format != stream_format:
+			continue
+		if streams[0].channels != n_channels:
+			continue
+		if streams[0].rate != rate:
+			continue
+		return streams
+	return None
+
+
 class Entry:
 	def __init__(self, file_name, number_of_streams):
 		global soundEntryList
-		self.fileName = 'Sounds/' + file_name
-		self.streamList = []
-		self.allStreamsArePlaying = False
+		global streamsList
+		self.filePath = 'Sounds/' + file_name
 		self.timeAtLastPlay = time.time()
-		while len(self.streamList) < number_of_streams:
-			self.streamList.append(Stream(file_name, self))
+		self.wav = wave.open(self.filePath, 'rb')
 		soundEntryList[file_name] = self
-
-	def stream_with_earliest_play(self):
-		earliest_stream = self.streamList[0]
-		for stream in self.streamList:
-			if stream.timeAtLastPlay < earliest_stream.timeAtLastPlay:
-				earliest_stream = stream
-		return earliest_stream
+		temp_format = portAudioInterface.get_format_from_width(self.wav.getsampwidth())
+		self.streamList = find_matching_stream(temp_format, self.wav.getnchannels(), self.wav.getframerate())
+		if self.streamList is None:
+			new_streams = []
+			for i in range(number_of_streams):
+				new_streams.append(Stream(self.wav))
+			self.streamList = new_streams
+			streamsList.append(new_streams)
 
 
 def get_all_sound_file_names():
@@ -96,6 +121,14 @@ def get_all_sound_file_names():
 			continue
 		sound_files_names[i] = sound_files_names[i][:-4]
 	return sound_files_names
+
+
+def stream_with_earliest_play(stream_list):
+	earliest_stream = stream_list[0]
+	for stream in stream_list:
+		if stream.timeAtLastPlay < earliest_stream.timeAtLastPlay:
+			earliest_stream = stream
+	return earliest_stream
 
 
 groupList = []
@@ -125,29 +158,27 @@ for group in groupList:
 		group['weightSum'] += sound['weight']
 	group['orderTracker'] = 0
 
-currentSoundPlaying = ''
-
 
 def play_sound(sound_entry):
 	global currentSoundPlaying
 	if time.time() - sound_entry.timeAtLastPlay <= delayBeforeRestartSound:
 		return
-	currentSoundPlaying = sound_entry
+	currentSoundPlaying = sound_entry.wav
 	sound_entry.timeAtLastPlay = time.time()
 	sound_entry.allStreamsArePlaying = True
 	for stream in sound_entry.streamList:
 		if not stream.isPlaying:
-			stream.playSoundThread = threading.Thread(target=stream.play_sound_entry)
+			stream.playSoundThread = stream.get_thread_play_sound(sound_entry)
 			stream.playSoundThread.start()
 			stream.isPlaying = True
 			stream.timeAtLastPlay = time.time()
-			print("Playing " + sound_entry.fileName)
+			print("Playing " + sound_entry.filePath)
 			sound_entry.allStreamsArePlaying = False
 			break
-	earliest_stream = sound_entry.stream_with_earliest_play()
+	earliest_stream = stream_with_earliest_play(sound_entry.streamList)
 	if sound_entry.allStreamsArePlaying:
-		print("Playing " + sound_entry.fileName)
-		earliest_stream.waveFile = wave.open(sound_entry.fileName, 'rb')
+		print("Playing " + sound_entry.filePath)
+		earliest_stream.set_wav(sound_entry.filePath)
 		earliest_stream.timeAtLastPlay = time.time()
 
 
@@ -174,10 +205,9 @@ for group in groupList:
 
 
 def keep_program_running():
-	while True:
-		time.sleep(1)
+	input()
 
 
-keepRunningThread = threading.Thread(target=keep_program_running)
+keepRunningThread = threading.Thread(target=input)
 keepRunningThread.start()
 print('Ready!')
