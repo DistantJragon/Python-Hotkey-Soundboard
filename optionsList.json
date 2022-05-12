@@ -16,19 +16,19 @@
             "description":"As I understand it, a buffer for pyAudio. This program defaults it to 2048. PyAudio defaulted it to 1024",
             "state":2048},
         "deviceIndex":{
-            "description":"Find the Device ID of your speakers or your Virtual Audio Cable with seeIndicesOfDevices.py (Probably required). Default: 0",
-            "state":15},
+            "description":"Find the Device ID of your speakers or your Virtual Audio Cable with seeIndicesOfDevices.py. Default: -1 (Uses Windows default speakers)",
+            "state":-1},
         "deviceName":{
             "description":"The name of the device to output audio to. Default: n/a",
-            "state":"VAC In (VB-Audio Virtual Cable)"},
-        "defaultStreamsPerSoundEntry":{
+            "state":"n/a"},
+        "numberOfStreams":{
             "description":"The default limit of layers of sounds. Default: 5",
             "state":5},
         "stopAllSoundsWithNewSound":{
             "description":"Stops all sounds if a new sound plays. Default: false",
             "state":false},
         "pollForKeyboard":{
-            "description":"Polls keyboard instead of making a hotkey. Could fix hotkeys not responding but is more resource-intensive. Default: false",
+            "description":"Polls keyboard instead of making a hotkey. Could fix hotkeys not responding in some cases but is more resource-intensive. Default: false",
             "state":false},
         "pollingRate":{
             "description":"Polling rate for keyboard in ms. Only applicable if pollForKeyboard is true. Default: 100",
