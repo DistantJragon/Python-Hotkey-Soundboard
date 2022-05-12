@@ -31,8 +31,8 @@
             "description":"Polls keyboard instead of making a hotkey. Could fix hotkeys not responding in some cases but is more resource-intensive. Default: false",
             "state":false},
         "pollingRate":{
-            "description":"Polling rate for keyboard in ms. Only applicable if pollForKeyboard is true. Default: 100",
-            "state":100
+            "description":"Polling rate for keyboard in seconds. Only applicable if pollForKeyboard is true. Default: .1",
+            "state":0.1
         }
     }
 }
