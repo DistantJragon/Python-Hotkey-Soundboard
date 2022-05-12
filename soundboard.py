@@ -203,13 +203,25 @@ def play_sound_group(sound_group):
 			sound_group['orderTracker'] = 0
 
 
-for group in groupList:
-	for hotkey in group['hotkeys']:
-		keyboard.add_hotkey(hotkey, play_sound_group, args=(group,), timeout=delayBeforeRestartSound)
+if not pollForKeyboard:
+    for group in groupList:
+        for hotkey in group['hotkeys']:
+            keyboard.add_hotkey(hotkey, play_sound_group, args=(group,), timeout=delayBeforeRestartSound)
 
 
-def keep_program_running():
-	input()
+def keep_program_running_events():
+    input()
+    keyboard.unhook_all_hotkeys()
+
+
+def check_keys():
+    for t_group in groupList:
+        for t_hotkey in t_group['hotkeys']:
+            if keyboard.is_pressed(t_hotkey):
+                play_sound_group(t_group)
+
+
+userQuit = False
 
 
 keepRunningThread = threading.Thread(target=keep_program_running)
