@@ -69,7 +69,7 @@ class Stream:
 		self.playSoundThread = None
 		self.wav = None
 
-	def play_sound_entry(self, file_path):
+	def play_sound_entry(self):
 		global currentSoundPlaying
 		data = self.wav.readframes(chunk)
 		while data:
@@ -82,8 +82,8 @@ class Stream:
 		self.isPlaying = False
 		return
 
-	def get_thread_play_sound(self, entry):
-		return threading.Thread(target=self.play_sound_entry, args=(entry.filePath,))
+	def get_thread_play_sound(self):
+		return threading.Thread(target=self.play_sound_entry)
 
 	def set_wav(self, file_path):
 		self.wav = wave.open(file_path, 'rb')
@@ -171,7 +171,7 @@ def play_sound(sound_entry):
 		if not stream.isPlaying:
 			stream.set_wav(sound_entry.filePath)
 			currentSoundPlaying = stream.wav
-			stream.playSoundThread = stream.get_thread_play_sound(sound_entry)
+			stream.playSoundThread = stream.get_thread_play_sound()
 			stream.playSoundThread.start()
 			stream.isPlaying = True
 			stream.timeAtLastPlay = time.time()
