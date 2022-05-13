@@ -24,14 +24,12 @@ def get_all_sound_file_names():
     return sound_files_names
 
 
-portAudioInterface = pyaudio.PyAudio()
-
-
 def print_playback_device(device_index):
+    p = pyaudio.PyAudio()
     if device_index is None:
         print("Using default Windows playback device")
     else:
-        current_device_name = portAudioInterface.get_device_info_by_host_api_device_index(0, device_index).get('name')
+        current_device_name = p.get_device_info_by_host_api_device_index(0, device_index).get('name')
         print("Using playback device ID ", device_index, " - ", current_device_name)
 
 
@@ -46,11 +44,11 @@ if deviceIndex == -1:
 
 class Stream:
     def __init__(self, template_wav):
-        global portAudioInterface, deviceIndex
-        self.format = portAudioInterface.get_format_from_width(template_wav.getsampwidth())
+        global deviceIndex
+        self.format = pyaudio.PyAudio().get_format_from_width(template_wav.getsampwidth())
         self.channels = template_wav.getnchannels()
         self.rate = template_wav.getframerate()
-        self.stream = portAudioInterface.open(
+        self.stream = pyaudio.PyAudio().open(
             output_device_index=deviceIndex,
             format=self.format,
             channels=self.channels,
@@ -68,6 +66,7 @@ class Stream:
         stop_all_sounds_hotkey = options['stopAllSoundsHotkey']['state']
         chunk = options['chunk']['state']
         data = self.wav.readframes(chunk)
+        self.isPlaying = True
         while data:
             data = self.wav.readframes(chunk)
             self.stream.write(data)
@@ -93,12 +92,8 @@ def stream_with_earliest_play(stream_list):
     return earliest_stream
 
 
-streamsList = []
-
-
-def find_matching_stream(stream_format, n_channels, rate):
-    global streamsList
-    for streams in streamsList:
+def find_matching_stream(streams_list, stream_format, n_channels, rate):
+    for streams in streams_list:
         if streams[0].format != stream_format:
             continue
         if streams[0].channels != n_channels:
@@ -109,19 +104,24 @@ def find_matching_stream(stream_format, n_channels, rate):
     return None
 
 
+streamsList = []
 soundEntryList = {}
 delayBeforeRestartSound = options['delayBeforeRestartSound']['state']
 
 
 class Entry:
     def __init__(self, file_name, number_of_streams):
-        global soundEntryList, portAudioInterface, streamsList
+        global soundEntryList, streamsList
         self.filePath = 'Sounds/' + file_name
         self.timeAtLastPlay = time.time()
         self.wav = wave.open(self.filePath, 'rb')
         soundEntryList[file_name] = self
-        temp_format = portAudioInterface.get_format_from_width(self.wav.getsampwidth())
-        self.streamList = find_matching_stream(temp_format, self.wav.getnchannels(), self.wav.getframerate())
+        temp_format = pyaudio.PyAudio().get_format_from_width(self.wav.getsampwidth())
+        self.streamList = find_matching_stream(streamsList,
+                                               temp_format,
+                                               self.wav.getnchannels(),
+                                               self.wav.getframerate())
+        self.allStreamsArePlaying = False
         if self.streamList is None:
             new_streams = []
             for i in range(number_of_streams):
@@ -129,30 +129,29 @@ class Entry:
             self.streamList = new_streams
             streamsList.append(new_streams)
 
-
-def play_sound(sound_entry):
-    global currentSoundPlaying, delayBeforeRestartSound
-    if time.time() - sound_entry.timeAtLastPlay <= delayBeforeRestartSound:
-        return
-    sound_entry.timeAtLastPlay = time.time()
-    sound_entry.allStreamsArePlaying = True
-    for stream in sound_entry.streamList:
-        if not stream.isPlaying:
-            stream.set_wav(sound_entry.filePath)
-            currentSoundPlaying = stream.wav
-            stream.playSoundThread = stream.get_thread_play_sound()
-            stream.playSoundThread.start()
-            stream.isPlaying = True
-            stream.timeAtLastPlay = time.time()
-            print("Playing " + sound_entry.filePath)
-            sound_entry.allStreamsArePlaying = False
-            break
-    earliest_stream = stream_with_earliest_play(sound_entry.streamList)
-    if sound_entry.allStreamsArePlaying:
-        print("Playing " + sound_entry.filePath)
-        earliest_stream.set_wav(sound_entry.filePath)
-        currentSoundPlaying = earliest_stream.wav
-        earliest_stream.timeAtLastPlay = time.time()
+    def play(self):
+        global currentSoundPlaying, delayBeforeRestartSound
+        if time.time() - self.timeAtLastPlay <= delayBeforeRestartSound:
+            return
+        self.timeAtLastPlay = time.time()
+        self.allStreamsArePlaying = True
+        for stream in self.streamList:
+            if not stream.isPlaying:
+                stream.set_wav(self.filePath)
+                currentSoundPlaying = stream.wav
+                stream.playSoundThread = stream.get_thread_play_sound()
+                stream.playSoundThread.start()
+                stream.isPlaying = True
+                stream.timeAtLastPlay = time.time()
+                print("Playing " + self.filePath)
+                self.allStreamsArePlaying = False
+                break
+        if self.allStreamsArePlaying:
+            print("Playing " + self.filePath)
+            earliest_stream = stream_with_earliest_play(self.streamList)
+            earliest_stream.set_wav(self.filePath)
+            currentSoundPlaying = earliest_stream.wav
+            earliest_stream.timeAtLastPlay = time.time()
 
 
 groupList = []
@@ -190,13 +189,13 @@ def play_sound_group(sound_group):
         random_number = random.random() * sound_group['weightSum']
         for current_sound in sound_group['sounds']:
             if random_number <= current_sound['weight']:
-                play_sound(soundEntryList[current_sound['name'] + ".wav"])
+                soundEntryList[current_sound['name'] + ".wav"].play()
                 break
             else:
                 random_number -= current_sound['weight']
     else:
         sound_in_front_of_line = sound_group['sounds'][sound_group['orderTracker']]
-        play_sound(soundEntryList[sound_in_front_of_line['name'] + ".wav"])
+        soundEntryList[sound_in_front_of_line['name'] + ".wav"].play()
         sound_group['orderTracker'] += 1
         if sound_group['orderTracker'] > len(sound_group['sounds']) - 1:
             sound_group['orderTracker'] = 0
