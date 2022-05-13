@@ -213,8 +213,11 @@ def check_keys():
         for t_hotkey in t_group['hotkeys']:
             if keyboard.is_pressed(t_hotkey):
                 play_sound_group(t_group)
-                time.sleep(delayBeforeRestartSound)
                 break
+    if userQuit:
+        return
+    t = threading.Timer(pollingRate, check_keys)
+    t.start()
 
 
 userQuit = False
@@ -222,10 +225,9 @@ pollingRate = options['pollingRate']['state']
 
 
 def keep_program_running_poll():
-    global userQuit, pollingRate
-    while not userQuit:
-        check_keys()
-        time.sleep(pollingRate)
+    global pollingRate
+    t = threading.Timer(pollingRate, check_keys)
+    t.start()
 
 
 def add_fields_to_groups():
@@ -257,7 +259,7 @@ if __name__ == "__main__":
     if pollForKeyboard:
         keepRunningThread = threading.Thread(target=keep_program_running_poll)
         keepRunningThread.start()
-        print('Ready! Since polling is on, the program will not print what sound was played')
+        print('Ready!')
         input()
         userQuit = True
     else:
