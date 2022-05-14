@@ -106,7 +106,6 @@ def find_matching_stream(streams_list, stream_format, n_channels, rate):
 
 streamsList = []
 soundEntryList = {}
-delayBeforeRestartSound = options['delayBeforeRestartSound']['state']
 
 
 class Entry:
@@ -130,8 +129,9 @@ class Entry:
             streamsList.append(new_streams)
 
     def play(self):
-        global currentSoundPlaying, delayBeforeRestartSound
-        if time.time() - self.timeAtLastPlay <= delayBeforeRestartSound:
+        global currentSoundPlaying, options
+        delay_before_restart_sound = options['delayBeforeRestartSound']['state']
+        if time.time() - self.timeAtLastPlay <= delay_before_restart_sound:
             return
         self.timeAtLastPlay = time.time()
         self.allStreamsArePlaying = True
@@ -155,36 +155,38 @@ class Entry:
 
 
 groupList = []
-numberOfStreams = options['numberOfStreams']['state']
 
 
 def make_group_and_entries_with_all_sounds():
-    global groupList, options, numberOfStreams
+    global groupList, options
     all_sounds_group_hotkey = options['allSoundsGroupHotkey']['state']
+    number_of_streams = options['numberOfStreams']['state']
     sound_files_names = get_all_sound_file_names()
     all_sounds_dictionary = {'playRandomly': True, 'hotkeys': [all_sounds_group_hotkey], 'sounds': []}
     for sound_file in sound_files_names:
         all_sounds_dictionary['sounds'].append({'name': sound_file, 'weight': 1})
     groupList.append(all_sounds_dictionary)
     for sound_file in sound_files_names:
-        Entry(sound_file + '.wav', numberOfStreams)
+        Entry(sound_file + '.wav', number_of_streams)
 
 
 def add_group_file_to_group_list():
+    global options
     group_file = open('groupList.json')
     group_data = json.load(group_file)
     group_entries = group_data['groupEntries']
     group_entries_keys = group_entries.keys()
     make_group_with_all_sounds = options['makeGroupWithAllSounds']['state']
-
+    number_of_streams = options['numberOfStreams']['state']
     for key in group_entries_keys:
         groupList.append(group_entries[key])
         if not make_group_with_all_sounds:
             for sound_file_name in group_entries[key]['sounds']:
-                Entry(sound_file_name['name'] + '.wav', numberOfStreams)
+                Entry(sound_file_name['name'] + '.wav', number_of_streams)
 
 
 def play_sound_group(sound_group):
+    global soundEntryList
     if sound_group['playRandomly']:
         random_number = random.random() * sound_group['weightSum']
         for current_sound in sound_group['sounds']:
@@ -207,7 +209,9 @@ def keep_program_running_events():
 
 
 def check_keys():
-    global delayBeforeRestartSound
+    global options
+    # delay_before_restart_sound = options['delayBeforeRestartSound']['state']
+    polling_rate = options['pollingRate']['state']
     for t_group in groupList:
         for t_hotkey in t_group['hotkeys']:
             if keyboard.is_pressed(t_hotkey):
@@ -215,17 +219,17 @@ def check_keys():
                 break
     if userQuit:
         return
-    t = threading.Timer(pollingRate, check_keys)
+    t = threading.Timer(polling_rate, check_keys)
     t.start()
 
 
 userQuit = False
-pollingRate = options['pollingRate']['state']
 
 
 def keep_program_running_poll():
-    global pollingRate
-    t = threading.Timer(pollingRate, check_keys)
+    global options
+    polling_rate = options['pollingRate']['state']
+    t = threading.Timer(polling_rate, check_keys)
     t.start()
 
 
@@ -238,10 +242,14 @@ def add_fields_to_groups():
 
 
 def hook_hotkeys():
-    global groupList, delayBeforeRestartSound
+    global groupList, options
+    delay_before_restart_sound = options['delayBeforeRestartSound']['state']
     for group in groupList:
         for hotkey in group['hotkeys']:
-            keyboard.add_hotkey(hotkey, play_sound_group, args=(group,), timeout=delayBeforeRestartSound)
+            keyboard.add_hotkey(hotkey,
+                                play_sound_group,
+                                args=(group,),
+                                timeout=delay_before_restart_sound)
 
 
 if __name__ == "__main__":
