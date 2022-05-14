@@ -1,5 +1,5 @@
 from random import random
-from typing import Callable
+from typing import Callable, Optional
 from wave import Wave_read
 from Entry import Entry
 from Option import Option
@@ -21,7 +21,7 @@ class Group:
         self.orderTracker = 0
 
     def play(self, options: dict[str, Option],
-             get_current_sound_playing: Callable[[], Wave_read],
+             get_current_sound_playing: Callable[[], Optional[Wave_read]],
              set_current_sound_playing: Callable[[Wave_read], None]):
         sound_entry_list = [e for e in self.soundEntryWeights]
         if self.playRandomly:

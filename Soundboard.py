@@ -4,6 +4,8 @@ from os import listdir
 from pyaudio import PyAudio
 from threading import Thread, Timer as Thread_Timer
 from time import time
+from typing import Callable, Optional
+from wave import Wave_read
 from Group import Group
 from Entry import Entry
 from StreamList import StreamList
@@ -27,9 +29,14 @@ class Soundboard:
         self.groupList: list[Group] = []
         self.allEntriesMade: bool = False
         self.options: dict[str, Option] = {}
-        self.currentSoundPlaying = None
-        self.userWantsToQuit = False
-        self.timeAtLastPlay = time()
+        self.get_options()
+        self.currentSoundPlaying: Optional[Wave_read] = None
+        self.get_current_sound_playing: Callable[[], Optional[Wave_read]] = lambda: self.currentSoundPlaying
+        self.userWantsToQuit: bool = False
+        self.timeAtLastPlay: float = time()
+
+    def set_current_sound_playing(self, sound: Wave_read):
+        self.currentSoundPlaying = sound
 
     def get_options(self):
         options_file = open('optionsList.json')
@@ -40,7 +47,7 @@ class Soundboard:
         if self.options["Device"].state == -1:
             self.options["Device"].state = None
 
-    def find_matching_stream(self, s_format, n_channels, rate):
+    def find_matching_stream(self, s_format: int, n_channels: int, rate: int):
         for unique_streams in self.streamsList:
             if (unique_streams.format == s_format and
                     unique_streams.channels == n_channels and
@@ -96,16 +103,11 @@ class Soundboard:
         input()
         unhook_all_hotkeys()
 
-    def get_current_sound_playing(self):
-        return self.currentSoundPlaying
-
-    def set_current_sound_playing(self, sound):
-        self.currentSoundPlaying = sound
-
     def play_group(self,
                    group: Group):
         if time() - self.timeAtLastPlay <= self.options["Delay Before New Sound Can Play"].state:
             return
+        self.timeAtLastPlay = time()
         group.play(self.options,
                    self.get_current_sound_playing,
                    self.set_current_sound_playing)
@@ -142,7 +144,6 @@ def get_name_of_device(device_index):
 
 if __name__ == "__main__":
     s = Soundboard()
-    s.get_options()
     if s.options["Make Group With All Sounds"].state:
         s.make_group_and_entries_with_all_sounds()
     s.add_group_file_to_group_list()

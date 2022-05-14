@@ -1,5 +1,5 @@
 from time import time
-from typing import Callable
+from typing import Callable, Optional
 from wave import open, Wave_read
 from StreamList import StreamList
 from Option import Option
@@ -15,7 +15,7 @@ class Entry:
 
     def play(self,
              options: dict[str, Option],
-             get_current_sound_playing: Callable[[], Wave_read],
+             get_current_sound_playing: Callable[[], Optional[Wave_read]],
              set_current_sound_playing: Callable[[Wave_read], None]):
         for stream in self.streamList.streamList:
             if not stream.isPlaying:
