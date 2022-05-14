@@ -13,12 +13,12 @@ from Option import Option
 
 
 def get_all_sound_file_names():
+    list_of_files = listdir('Sounds')
     sound_files_names = [fileName for fileName in listdir('Sounds')]
-    for i in range(len(sound_files_names)):
-        if '.wav' not in sound_files_names[i]:
-            sound_files_names.pop(i)
+    for file_name in list_of_files:
+        if len(file_name) > 3 and file_name[-4:] == ".wav":
+            sound_files_names.append(file_name)
             continue
-        sound_files_names[i] = sound_files_names[i][:-4]
     return sound_files_names
 
 
@@ -60,7 +60,7 @@ class Soundboard:
         sound_files_names = get_all_sound_file_names()
         entry_dictionary = {}
         for sound_file in sound_files_names:
-            current_entry = Entry(sound_file + '.wav', self.find_or_create_stream_list_from_wav)
+            current_entry = Entry(sound_file, self.find_or_create_stream_list_from_wav)
             self.entryList[sound_file] = current_entry
             entry_dictionary[current_entry] = 1
         self.groupList.append(Group(name="All Sounds Random",
@@ -98,13 +98,7 @@ class Soundboard:
             self.streamsList.append(stream_list)
         return stream_list
 
-    @staticmethod
-    def keep_program_running_events():
-        input()
-        unhook_all_hotkeys()
-
-    def play_group(self,
-                   group: Group):
+    def play_group(self, group: Group):
         if time() - self.timeAtLastPlay <= self.options["Delay Before New Sound Can Play"].state:
             return
         self.timeAtLastPlay = time()
@@ -153,11 +147,9 @@ if __name__ == "__main__":
     if s.options["Poll For Keyboard"].state:
         keepRunningThread = Thread(target=s.keep_program_running_poll)
         keepRunningThread.start()
-        print('Ready!')
-        input()
-        s.userWantsToQuit = True
     else:
         s.hook_hotkeys()
-        keepRunningThread = Thread(target=s.keep_program_running_events)
-        keepRunningThread.start()
-        print('Ready!')
+    print('Ready!')
+    input()
+    s.userWantsToQuit = True
+    unhook_all_hotkeys()
