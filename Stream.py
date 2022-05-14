@@ -1,7 +1,7 @@
-import keyboard
-import pyaudio
-import threading
-import time
+from keyboard import is_pressed as is_hotkey_pressed
+from pyaudio import PyAudio
+from threading import Thread
+from time import time
 from typing import Callable
 from wave import open, Wave_read
 from Option import Option
@@ -15,14 +15,14 @@ class Stream:
         self.format = s_format
         self.channels = channels
         self.rate = rate
-        self.stream = pyaudio.PyAudio().open(
+        self.stream = PyAudio().open(
             output_device_index=device_index,
             format=self.format,
             channels=self.channels,
             rate=self.rate,
             output=True
         )
-        self.timeAtLastPlay = time.time()
+        self.timeAtLastPlay = time()
         self.isPlaying = False
         self.playSoundThread = None
         self.wav = None
@@ -38,7 +38,7 @@ class Stream:
         while data:
             data = self.wav.readframes(chunk)
             self.stream.write(data)
-            if (keyboard.is_pressed(stop_all_sounds_hotkey) or
+            if (is_hotkey_pressed(stop_all_sounds_hotkey) or
                     (stop_all_sounds_with_new_sound and
                      self.wav is not get_current_sound_playing())):
                 break
@@ -48,7 +48,7 @@ class Stream:
     def get_play_thread(self,
                         options: dict[str, Option],
                         get_current_sound_playing: Callable[[], Wave_read]):
-        return threading.Thread(target=self.play, args=(options, get_current_sound_playing))
+        return Thread(target=self.play, args=(options, get_current_sound_playing))
 
     def set_wav(self, file_path):
         self.wav = open(file_path, 'rb')

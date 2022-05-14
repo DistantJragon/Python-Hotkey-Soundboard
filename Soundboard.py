@@ -1,16 +1,17 @@
-import pyaudio
-import keyboard
-import threading
-import os
-import json
-from StreamList import StreamList
-from Entry import Entry
+from json import load
+from keyboard import is_pressed as is_hotkey_pressed, add_hotkey, unhook_all_hotkeys
+from os import listdir
+from pyaudio import PyAudio
+from threading import Thread, Timer as Thread_Timer
+from time import time
 from Group import Group
+from Entry import Entry
+from StreamList import StreamList
 from Option import Option
 
 
 def get_all_sound_file_names():
-    sound_files_names = [fileName for fileName in os.listdir('Sounds')]
+    sound_files_names = [fileName for fileName in listdir('Sounds')]
     for i in range(len(sound_files_names)):
         if '.wav' not in sound_files_names[i]:
             sound_files_names.pop(i)
@@ -24,14 +25,15 @@ class Soundboard:
         self.streamsList: list[StreamList] = []
         self.entryList: dict[str, Entry] = {}
         self.groupList: list[Group] = []
-        self.allEntriesMade = False
+        self.allEntriesMade: bool = False
         self.options: dict[str, Option] = {}
         self.currentSoundPlaying = None
         self.userWantsToQuit = False
+        self.timeAtLastPlay = time()
 
     def get_options(self):
         options_file = open('optionsList.json')
-        options_data = json.load(options_file)
+        options_data = load(options_file)
         options = options_data['options']
         for key in options:
             self.options[key] = Option(key, options[key])
@@ -62,7 +64,7 @@ class Soundboard:
 
     def add_group_file_to_group_list(self):
         group_file = open('groupList.json')
-        group_data = json.load(group_file)
+        group_data = load(group_file)
         group_entries = group_data['groupEntries']
         for key in group_entries:
             current_entries = {}
@@ -80,7 +82,7 @@ class Soundboard:
 
     def find_or_create_stream_list_from_wav(self, wav) -> StreamList:
         number_of_streams = self.options["Number Of Streams"].state
-        temp_format = pyaudio.PyAudio().get_format_from_width(wav.getsampwidth())
+        temp_format = PyAudio().get_format_from_width(wav.getsampwidth())
         stream_list = self.find_matching_stream(temp_format,
                                                 wav.getnchannels(),
                                                 wav.getframerate())
@@ -92,7 +94,7 @@ class Soundboard:
     @staticmethod
     def keep_program_running_events():
         input()
-        keyboard.unhook_all_hotkeys()
+        unhook_all_hotkeys()
 
     def get_current_sound_playing(self):
         return self.currentSoundPlaying
@@ -100,35 +102,38 @@ class Soundboard:
     def set_current_sound_playing(self, sound):
         self.currentSoundPlaying = sound
 
+    def play_group(self,
+                   group: Group):
+        if time() - self.timeAtLastPlay <= self.options["Delay Before New Sound Can Play"].state:
+            return
+        group.play(self.options,
+                   self.get_current_sound_playing,
+                   self.set_current_sound_playing)
+
     def keep_program_running_poll(self):
-        # delay_before_restart_sound = options['delayBeforeRestartSound']['state']
         polling_rate = self.options['Polling Rate'].state
         for group in self.groupList:
             for hotkey in group.hotkeys:
-                if keyboard.is_pressed(hotkey):
-                    group.play(self.options,
-                               self.get_current_sound_playing,
-                               self.set_current_sound_playing)
+                if is_hotkey_pressed(hotkey):
+                    self.play_group(group)
                     break
         if self.userWantsToQuit:
             return
-        t = threading.Timer(polling_rate, self.keep_program_running_poll)
+        t = Thread_Timer(polling_rate, self.keep_program_running_poll)
         t.start()
 
     def hook_hotkeys(self):
         delay_before_restart_sound = self.options['Delay Before New Sound Can Play'].state
         for group in self.groupList:
             for hotkey in group.hotkeys:
-                keyboard.add_hotkey(hotkey,
-                                    group.play,
-                                    args=(self.options,
-                                          self.get_current_sound_playing,
-                                          self.set_current_sound_playing),
-                                    timeout=delay_before_restart_sound)
+                add_hotkey(hotkey,
+                           self.play_group,
+                           args=(group,),
+                           timeout=delay_before_restart_sound)
 
 
 def get_name_of_device(device_index):
-    p = pyaudio.PyAudio()
+    p = PyAudio()
     if device_index is None:
         return "Default"
     else:
@@ -145,13 +150,13 @@ if __name__ == "__main__":
     print("Using " + get_name_of_device(s.options["Device"].state) + " device")
 
     if s.options["Poll For Keyboard"].state:
-        keepRunningThread = threading.Thread(target=s.keep_program_running_poll)
+        keepRunningThread = Thread(target=s.keep_program_running_poll)
         keepRunningThread.start()
         print('Ready!')
         input()
         s.userWantsToQuit = True
     else:
         s.hook_hotkeys()
-        keepRunningThread = threading.Thread(target=s.keep_program_running_events)
+        keepRunningThread = Thread(target=s.keep_program_running_events)
         keepRunningThread.start()
         print('Ready!')
