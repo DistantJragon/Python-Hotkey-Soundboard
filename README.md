@@ -4,9 +4,9 @@
 
 ###### Adding Sounds and Hotkeys
 
-1. Find the device you want to use by starting "Start seeIndeciesOfDevices.bat" and replace deviceID in soundboard.py with desired device id
+1. Find the device you want to use by starting "Start seeIndiesOfDevices.bat" and replace deviceID in soundboard.py with desired device id
 2. Add the WAV file to the Sounds folder
-3. Add sound entries in goupList.json following the example sounds given
+3. Add sound entries in groupList.json following the example sounds given
 4. Start the program with "Start soundboard.bat" and cause chaos
 
 Note: Only wave files work
