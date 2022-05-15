@@ -4,7 +4,7 @@
 
 ### Changing Device
 
-1. Find the device you want to use by starting "Start seeIndiesOfDevices" (or "Start seeIndiesOfDevices.bat")
+1. Find the device you want to use by starting "Start seeIndicesOfDevices" (or "Start seeIndicesOfDevices.bat")
 2. Replace the state of "Device" in optionsList.json with the desired device id
 
 
