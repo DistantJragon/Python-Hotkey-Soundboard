@@ -165,7 +165,7 @@ if __name__ == "__main__":
         keepRunningThread.start()
     else:
         s.hook_hotkeys()
-    print('Ready!')
+    print('Ready! Press enter to exit')
     input()
     s.userWantsToQuit = True
     unhook_all_hotkeys()
