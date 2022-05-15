@@ -2,19 +2,23 @@
 (Only 64-bit OS is guaranteed to work with this program)
 ## Easy program that plays WAV files when you press a key or combination of keys.
 
-###### Adding Sounds and Hotkeys
+### Changing Device
 
-1. Find the device you want to use by starting "Start seeIndiesOfDevices.bat" and replace deviceID in soundboard.py with desired device id
-2. Add the WAV file to the Sounds folder
-3. Add sound entries in groupList.json following the example sounds given
-4. Start the program with "Start soundboard.bat" and cause chaos
+1. Find the device you want to use by starting "Start seeIndiesOfDevices" (or "Start seeIndiesOfDevices.bat")
+2. Replace the state of "Device" in optionsList.json with the desired device id
 
-Note: Only wave files work
 
-###### Start When User Logs Into Windows
+### Adding Sounds and Hotkeys
 
-You can have this program start when you log in to Windows by either
+1. Add the WAV file to the Sounds folder
+2. Add sound entries in groupList.json following the example sounds given
+3. Start the program with "Start soundboard.bat"
 
+Note: Only files ending in .wav will be recognized
+
+### Start When The User Logs Into Windows
+
+You can have this program start when you log in to Windows via one of these methods:
 - Creating a shortcut from Window's startup folder to "Start soundboard.bat"
-or
-- Using Task Scheduler to start "Start soundboard.bat" on boot
+
+- Using the Task Scheduler program to start "Start soundboard.bat" on boot
