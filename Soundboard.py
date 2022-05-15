@@ -7,6 +7,7 @@ from time import time
 from typing import Callable, Optional
 from wave import Wave_read
 from Group import Group
+from GroupEntry import GroupEntry
 from Entry import Entry
 from StreamList import StreamList
 from Option import Option
@@ -27,7 +28,6 @@ class Soundboard:
         self.streamsList: list[StreamList] = []
         self.entryList: dict[str, Entry] = {}
         self.groupList: list[Group] = []
-        self.allEntriesMade: bool = False
         self.options: dict[str, Option] = {}
         self.get_options()
         self.currentSoundPlaying: Optional[Wave_read] = None
@@ -46,8 +46,7 @@ class Soundboard:
 
     def get_options(self):
         options_file = open('optionsList.json')
-        options_data = load(options_file)
-        options = options_data['options']
+        options = load(options_file)
         for key in options:
             self.options[key] = Option(key, options[key])
         if self.options["Device"].state == -1:
@@ -64,34 +63,41 @@ class Soundboard:
     def make_group_and_entries_with_all_sounds(self):
         all_sounds_group_hotkey = self.options["\"All Sounds\" Group Hotkey"].state
         sound_files_names = get_all_sound_file_names()
-        entry_dictionary = {}
+        group_entries = []
         for sound_file in sound_files_names:
-            current_entry = Entry(sound_file, self.find_or_create_stream_list_from_wav)
-            self.entryList[sound_file] = current_entry
-            entry_dictionary[current_entry] = 1
+            if sound_file in self.entryList:
+                current_entry = self.entryList[sound_file]
+            else:
+                current_entry = Entry(sound_file, self.find_or_create_stream_list_from_wav)
+                self.entryList[sound_file] = current_entry
+            group_entries.append(GroupEntry(current_entry, 1))
         self.groupList.append(Group(name="All Sounds Random",
                                     play_randomly=True,
                                     hotkeys=[all_sounds_group_hotkey],
-                                    sound_entries_weights=entry_dictionary))
-        self.allEntriesMade = False
+                                    group_entries=group_entries))
 
     def add_group_file_to_group_list(self):
         group_file = open('groupList.json')
-        group_data = load(group_file)
-        group_entries = group_data['groupEntries']
+        group_entries = load(group_file)
         for key in group_entries:
-            current_entries = {}
+            current_entries: list[GroupEntry] = []
             for jsonEntry in group_entries[key]["sounds"]:
-                if jsonEntry["name"] + ".wav" in self.entryList:
-                    current_entry = self.entryList[jsonEntry["name"] + ".wav"]
+                name = jsonEntry["name"] + ".wav"
+                if name in self.entryList:
+                    current_entry = self.entryList[name]
                 else:
-                    current_entry = Entry(jsonEntry["name"] + ".wav", self.find_or_create_stream_list_from_wav)
-                    self.entryList[jsonEntry["name"]] = current_entry
-                current_entries[current_entry] = jsonEntry["weight"]
+                    current_entry = Entry(name, self.find_or_create_stream_list_from_wav)
+                    self.entryList[name] = current_entry
+                current_entries.append(GroupEntry(current_entry, jsonEntry["weight"]))
             self.groupList.append(Group(name=key,
                                         play_randomly=group_entries[key]["playRandomly"],
                                         hotkeys=group_entries[key]["hotkeys"],
-                                        sound_entries_weights=current_entries))
+                                        group_entries=current_entries))
+
+    def create_all_groups(self):
+        if self.options["Make Group With All Sounds"].state:
+            self.make_group_and_entries_with_all_sounds()
+        self.add_group_file_to_group_list()
 
     def find_or_create_stream_list_from_wav(self, wav) -> StreamList:
         number_of_streams = self.options["Number Of Streams"].state
@@ -151,10 +157,7 @@ def get_name_of_device(device_index):
 
 if __name__ == "__main__":
     s = Soundboard()
-    if s.options["Make Group With All Sounds"].state:
-        s.make_group_and_entries_with_all_sounds()
-    s.add_group_file_to_group_list()
-    # deviceName = options['deviceName']['state']
+    s.create_all_groups()
     print("Using " + get_name_of_device(s.options["Device"].state) + " device")
 
     if s.options["Poll For Keyboard"].state:
