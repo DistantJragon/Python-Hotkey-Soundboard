@@ -22,7 +22,8 @@ class Group:
 
     def play(self, options: dict[str, Option],
              get_current_sound_playing: Callable[[], Optional[Wave_read]],
-             set_current_sound_playing: Callable[[Wave_read], None]):
+             set_current_sound_playing: Callable[[Wave_read], None],
+             are_all_sounds_stopped: Callable[[], bool]):
         sound_entry_list = [e for e in self.soundEntryWeights]
         if self.playRandomly:
             random_number = random() * self.weightSum
@@ -30,7 +31,8 @@ class Group:
                 if random_number <= self.soundEntryWeights[current_sound]:
                     current_sound.play(options,
                                        get_current_sound_playing,
-                                       set_current_sound_playing)
+                                       set_current_sound_playing,
+                                       are_all_sounds_stopped)
                     break
                 else:
                     random_number -= self.soundEntryWeights[current_sound]
@@ -38,7 +40,8 @@ class Group:
             sound_in_front_of_line = sound_entry_list[self.orderTracker]
             sound_in_front_of_line.play(options,
                                         get_current_sound_playing,
-                                        set_current_sound_playing)
+                                        set_current_sound_playing,
+                                        are_all_sounds_stopped)
             self.orderTracker += 1
             if self.orderTracker > len(sound_entry_list) - 1:
                 self.orderTracker = 0

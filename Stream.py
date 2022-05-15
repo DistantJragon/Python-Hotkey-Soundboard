@@ -1,4 +1,3 @@
-from keyboard import is_pressed as is_hotkey_pressed
 from pyaudio import PyAudio
 from threading import Thread
 from time import time
@@ -29,16 +28,16 @@ class Stream:
 
     def play(self,
              options: dict[str, Option],
-             get_current_sound_playing: Callable[[], Optional[Wave_read]]):
+             get_current_sound_playing: Callable[[], Optional[Wave_read]],
+             are_all_sounds_stopped: Callable[[], bool]):
         stop_all_sounds_with_new_sound = options['Stop All Sounds With New Sound'].state
-        stop_all_sounds_hotkey = options["\"Stop All Sounds\" Hotkey"].state
         chunk = options['Chunk Size'].state
         data = self.wav.readframes(chunk)
         self.isPlaying = True
         while data:
             data = self.wav.readframes(chunk)
             self.stream.write(data)
-            if (is_hotkey_pressed(stop_all_sounds_hotkey) or
+            if (are_all_sounds_stopped() or
                     (stop_all_sounds_with_new_sound and
                      self.wav is not get_current_sound_playing())):
                 break
@@ -47,8 +46,9 @@ class Stream:
 
     def get_play_thread(self,
                         options: dict[str, Option],
-                        get_current_sound_playing: Callable[[], Optional[Wave_read]]):
-        return Thread(target=self.play, args=(options, get_current_sound_playing))
+                        get_current_sound_playing: Callable[[], Optional[Wave_read]],
+                        are_all_sounds_stopped: Callable[[], bool]):
+        return Thread(target=self.play, args=(options, get_current_sound_playing, are_all_sounds_stopped))
 
     def set_wav(self, file_path):
         self.wav = open(file_path, 'rb')

@@ -1,18 +1,18 @@
 {
     "groupEntries":{
-        "example1":{ "playRandomly":true, "hotkeys":["ctrl+1+num 1", "ctrl+1+num 2"],
+        "example1":{ "playRandomly":true, "hotkeys":["ctrl+1", "ctrl+2"],
             "sounds":[
                 {"name":"anime wow", "weight":3},
                 {"name":"windows error", "weight":7},
                 {"name":"sad trombone", "weight":40}
             ] },
-        "example2":{ "playRandomly":false, "hotkeys":["ctrl+1+num 3"],
+        "example2":{ "playRandomly":false, "hotkeys":["ctrl+3"],
             "sounds":[
                 {"name":"teleports behind you", "weight":1},
                 {"name":"bonk", "weight":69},
                 {"name":"bass sound effect", "weight":420}
             ] },
-        "example3":{ "playRandomly":false, "hotkeys":["ctrl+1+num 4"],
+        "example3":{ "playRandomly":false, "hotkeys":["ctrl+4"],
             "sounds":[{"name":"lil jon yeah", "weight":0.9}]}
     }
 }

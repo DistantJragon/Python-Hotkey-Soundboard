@@ -34,9 +34,15 @@ class Soundboard:
         self.get_current_sound_playing: Callable[[], Optional[Wave_read]] = lambda: self.currentSoundPlaying
         self.userWantsToQuit: bool = False
         self.timeAtLastPlay: float = time()
+        self.stopAllSounds = False
+        self.get_stop_all_sounds = lambda: self.stopAllSounds
 
     def set_current_sound_playing(self, sound: Wave_read):
         self.currentSoundPlaying = sound
+
+    def set_stop_all_sounds_true(self):
+        self.stopAllSounds = True
+        print("Stopping all sounds")
 
     def get_options(self):
         options_file = open('optionsList.json')
@@ -99,15 +105,19 @@ class Soundboard:
         return stream_list
 
     def play_group(self, group: Group):
+        self.stopAllSounds = False
         if time() - self.timeAtLastPlay <= self.options["Delay Before New Sound Can Play"].state:
             return
         self.timeAtLastPlay = time()
         group.play(self.options,
                    self.get_current_sound_playing,
-                   self.set_current_sound_playing)
+                   self.set_current_sound_playing,
+                   self.get_stop_all_sounds)
 
     def keep_program_running_poll(self):
         polling_rate = self.options['Polling Rate'].state
+        if is_hotkey_pressed(self.options["\"Stop All Sounds\" Hotkey"].state):
+            self.set_stop_all_sounds_true()
         for group in self.groupList:
             for hotkey in group.hotkeys:
                 if is_hotkey_pressed(hotkey):
@@ -122,10 +132,13 @@ class Soundboard:
         delay_before_restart_sound = self.options['Delay Before New Sound Can Play'].state
         for group in self.groupList:
             for hotkey in group.hotkeys:
-                add_hotkey(hotkey,
-                           self.play_group,
+                add_hotkey(hotkey=hotkey,
+                           callback=self.play_group,
                            args=(group,),
                            timeout=delay_before_restart_sound)
+        add_hotkey(hotkey=self.options["\"Stop All Sounds\" Hotkey"].state,
+                   callback=self.set_stop_all_sounds_true,
+                   timeout=0.1)
 
 
 def get_name_of_device(device_index):

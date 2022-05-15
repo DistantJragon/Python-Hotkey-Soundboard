@@ -16,12 +16,15 @@ class Entry:
     def play(self,
              options: dict[str, Option],
              get_current_sound_playing: Callable[[], Optional[Wave_read]],
-             set_current_sound_playing: Callable[[Wave_read], None]):
+             set_current_sound_playing: Callable[[Wave_read], None],
+             are_all_sounds_stopped: Callable[[], bool]):
         for stream in self.streamList.streamList:
             if not stream.isPlaying:
                 stream.set_wav(self.filePath)
                 set_current_sound_playing(stream.wav)
-                stream.playSoundThread = stream.get_play_thread(options, get_current_sound_playing)
+                stream.playSoundThread = stream.get_play_thread(options,
+                                                                get_current_sound_playing,
+                                                                are_all_sounds_stopped)
                 stream.playSoundThread.start()
                 stream.isPlaying = True
                 stream.timeAtLastPlay = time()
