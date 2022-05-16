@@ -1,8 +1,8 @@
 from json import load
-from keyboard import is_pressed as is_hotkey_pressed, add_hotkey, unhook_all_hotkeys
+from keyboard import is_pressed as is_hotkey_pressed, add_hotkey
 from os import listdir
 from pyaudio import PyAudio
-from threading import Thread, Timer as Thread_Timer
+from threading import Timer as Thread_Timer
 from time import time
 from typing import Callable, Optional
 from wave import Wave_read
@@ -34,8 +34,8 @@ class Soundboard:
         self.get_current_sound_playing: Callable[[], Optional[Wave_read]] = lambda: self.currentSoundPlaying
         self.userWantsToQuit: bool = False
         self.timeAtLastPlay: float = time()
-        self.stopAllSounds = False
-        self.get_stop_all_sounds = lambda: self.stopAllSounds
+        self.stopAllSounds: bool = False
+        self.get_stop_all_sounds: Callable[[], bool] = lambda: self.stopAllSounds
 
     def set_current_sound_playing(self, sound: Wave_read):
         self.currentSoundPlaying = sound
@@ -49,8 +49,8 @@ class Soundboard:
         options = load(options_file)
         for key in options:
             self.options[key] = Option(key, options[key])
-        if self.options["Device"].state == -1:
-            self.options["Device"].state = None
+        # if self.options["Device"].state == -1:
+        #     self.options["Device"].state = None
 
     def find_matching_stream(self, s_format: int, n_channels: int, rate: int):
         for unique_streams in self.streamsList:
@@ -153,19 +153,3 @@ def get_name_of_device(device_index):
         return "Default"
     else:
         return p.get_device_info_by_host_api_device_index(0, device_index).get('name')
-
-
-if __name__ == "__main__":
-    s = Soundboard()
-    s.create_all_groups()
-    print("Using " + get_name_of_device(s.options["Device"].state) + " device")
-
-    if s.options["Poll For Keyboard"].state:
-        keepRunningThread = Thread(target=s.keep_program_running_poll)
-        keepRunningThread.start()
-    else:
-        s.hook_hotkeys()
-    print('Ready! Press enter to exit')
-    input()
-    s.userWantsToQuit = True
-    unhook_all_hotkeys()
