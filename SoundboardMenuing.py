@@ -78,15 +78,23 @@ def make_group_prompt(group: Group):
         group_prompt += "\n" + str(j+1) + ". " + group.groupEntries[j].soundEntry.filePath[7:-4]
         if group.playRandomly:
             group_prompt += " - " + str(group.groupEntries[j].weight)
-    group_prompt += str(number_of_entries+1) + ". Change Group Name\n" + str(number_of_entries+2) + \
-        ". Change Hotkeys\n" + str(number_of_entries+3) + ". Change Play Style\n" + str(number_of_entries+4) + ". Back"
+    group_prompt += "\n\t" + str(number_of_entries+1) + ". Change Group Name\n\t" + str(number_of_entries+2) + \
+        ". Change Hotkeys\n\t" + str(number_of_entries+3) + ". Change Play Style\n\t" + str(number_of_entries+4) + \
+                    ". Back\nYour choice: "
     return group_prompt
 
+
 def make_group_action(group: Menu, user_choice: str):
-    if int(user_choice) - 1 == len(group.children) and group.parent is not None:
+    if int(user_choice) - 4 == len(group.children):
         group.parent.show_to_user()
-    elif int(user_choice) - 1 < len(self.children):
-        self.children[int(user_choice) - 1].show_to_user()
+    elif int(user_choice) - 3 == len(group.children):
+        pass
+    elif int(user_choice) - 1 < len(group.children):
+        group.children[int(user_choice) - 1].show_to_user()
+
+
+def make_group_menus(group_chooser: Menu):
+    pass
 
 
 def soundboard_menu(group_list: list[Group], options: dict[str, Option]):
