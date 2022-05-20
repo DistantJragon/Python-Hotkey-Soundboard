@@ -16,7 +16,7 @@
         "state":"ctrl+."},
     "Condense Sound Group Editor": {
         "description":"Condenses the list of sound groups when choosing a sound group to edit. Default: false",
-        "state":false},
+        "state":true},
     "Delay Before New Sound Can Play":{
         "description":"Prevents sounds from playing in a rapid-fire fashion. Default: 0.1",
         "state":0.1},

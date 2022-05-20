@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from typing import Callable
 
 
 def do_while(func: Callable, condition: Callable[..., bool],

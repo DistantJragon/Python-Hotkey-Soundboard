@@ -21,9 +21,9 @@ class Group:
         self.orderTracker = 0
 
     def play(self, options: dict[str, Option],
-             get_current_sound_playing: Callable[[], Optional[Wave_read]],
+             get_current_sound_playing: Callable[[None], Optional[Wave_read]],
              set_current_sound_playing: Callable[[Wave_read], None],
-             are_all_sounds_stopped: Callable[[], bool]):
+             are_all_sounds_stopped: Callable[[None], bool]):
         if self.playRandomly:
             random_number = random() * self.weightSum
             for group_entry in self.groupEntries:

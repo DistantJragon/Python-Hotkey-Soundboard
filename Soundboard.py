@@ -31,11 +31,11 @@ class Soundboard:
         self.options: dict[str, Option] = {}
         self.get_options()
         self.currentSoundPlaying: Optional[Wave_read] = None
-        self.get_current_sound_playing: Callable[[], Optional[Wave_read]] = lambda: self.currentSoundPlaying
-        self.userWantsToQuit: bool = False
-        self.timeAtLastPlay: float = time()
-        self.stopAllSounds: bool = False
-        self.get_stop_all_sounds: Callable[[], bool] = lambda: self.stopAllSounds
+        self.get_current_sound_playing = lambda: self.currentSoundPlaying
+        self.userWantsToQuit = False
+        self.timeAtLastPlay = time()
+        self.stopAllSounds = False
+        self.get_stop_all_sounds = lambda: self.stopAllSounds
 
     def set_current_sound_playing(self, sound: Wave_read):
         self.currentSoundPlaying = sound
