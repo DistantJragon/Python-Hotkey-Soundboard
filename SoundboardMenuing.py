@@ -1,29 +1,21 @@
 from typing import Optional
 
 from Group import Group
-from Menu import Menu
-from Option import Option
-from Strike import strike
+from GroupEntry import GroupEntry
+from MenuICPG import MenuICPG
+from Soundboard import Soundboard
+from TextFormatting import grey_out, brighten, enable_formatting
+from MenuIC import is_not_int_in_range, MenuIC
 
 
-def is_not_int(min_range: Optional[int], max_range: Optional[int], test: str):
-    try:
-        test_int = int(test)
-    except ValueError:
-        return True
-    if min_range is not None and min_range > test_int:
-        return True
-    if max_range is not None and max_range < test_int:
-        return True
-    return False
-
-
-def group_chooser_action(group_chooser: Menu, user_choice: str, group_list: list[Group]):
+def group_chooser_action(group_chooser: MenuICPG, user_choice: str, group_list: list[Group]):
     if int(user_choice) <= len(group_list):
-        group_chooser.children[0].promptArgs = (group_list[int(user_choice) - 1],)
-        group_chooser.children[0].checkArgs = (1, len(group_list) + 5)
-        group_chooser.children[0].actionArgs = (group_list[int(user_choice) - 1],)
-        group_chooser.children[0].show_to_user()
+        entry_chooser = group_chooser.children[0]
+        chosen_group = group_list[int(user_choice) - 1]
+        entry_chooser.promptArgs = (chosen_group,)
+        entry_chooser.checkArgs = (1, len(chosen_group.groupEntries) + 5)
+        entry_chooser.actionArgs = (chosen_group,)
+        entry_chooser.show_to_user()
     elif int(user_choice) == len(group_list) + 1:
         group_chooser.promptArgs = (group_list, not group_chooser.promptArgs[1])
         group_chooser.show_to_user()
@@ -38,35 +30,40 @@ def make_group_chooser_prompt(group_list: list[Group], condensed: bool):
         if condensed:
             group_chooser_prompt += str(i + 1) + ". " + group_list[i].name + "\n"
             continue
-        group_chooser_prompt += str(i+1) + ". " + group_list[i].name + " - " + group_list[i].hotkeys[0]
+        group_chooser_prompt += str(i + 1) + ". " + group_list[i].name + " - " + group_list[i].hotkeys[0]
         for j in range(1, len(group_list[i].hotkeys)):
             group_chooser_prompt += " | " + group_list[i].hotkeys[j]
         group_chooser_prompt += "\n"
         play_style = "Plays Randomly"
-        if not group_list[i].playRandomly:
-            play_style = strike(play_style)
+        if group_list[i].playRandomly:
+            play_style = brighten(play_style)
+        else:
+            play_style = grey_out(play_style)
+
         group_chooser_prompt += "\t  " + play_style
         for j in range(len(group_list[i].groupEntries)):
             group_chooser_prompt += "\n\t" + group_list[i].groupEntries[j].soundEntry.filePath[7:-4]
             if group_list[i].playRandomly:
                 group_chooser_prompt += " - " + str(group_list[i].groupEntries[j].weight)
         group_chooser_prompt += "\n"
-    group_chooser_prompt += str(number_of_groups+1)
+    group_chooser_prompt += str(number_of_groups + 1)
     if condensed:
         group_chooser_prompt += ". Un-condense Sound Groups\n"
     else:
         group_chooser_prompt += ". Condense Sound Groups\n"
-    group_chooser_prompt += str(number_of_groups+2) + ". Back\nYour choice: "
+    group_chooser_prompt += str(number_of_groups + 2) + ". Back\nYour choice: "
     return group_chooser_prompt
 
 
-def entry_chooser_action(entry_chooser: Menu, user_choice: str, group: Group, ):
+def entry_chooser_action(entry_chooser: MenuICPG, user_choice: str, group: Group, ):
     if int(user_choice) <= len(group.groupEntries):
         entry_chooser.children[0].show_to_user()
     elif int(user_choice) == len(group.groupEntries) + 5:
         entry_chooser.parent.show_to_user()
-    else:
-        entry_chooser.children[int(user_choice) - len(entry_chooser.children) - 1].show_to_user()
+    elif int(user_choice) == len(group.groupEntries) + 4 and group.playRandomly:
+        entry_chooser.show_to_user()
+    elif int(user_choice) <= len(group.groupEntries) + 5:
+        entry_chooser.children[int(user_choice) - len(entry_chooser.children)].show_to_user()
 
 
 def make_entry_chooser_prompt(group: Group):
@@ -76,40 +73,47 @@ def make_entry_chooser_prompt(group: Group):
         group_prompt += " | " + group.hotkeys[j]
     group_prompt += "\n"
     play_style = "Plays Randomly"
-    if not group.playRandomly:
-        play_style = strike(play_style)
+    if group.playRandomly:
+        play_style = brighten(play_style)
+    else:
+        play_style = grey_out(play_style)
     group_prompt += "\t  " + play_style
     number_of_entries = len(group.groupEntries)
     for j in range(number_of_entries):
-        group_prompt += "\n" + str(j+1) + ". " + group.groupEntries[j].soundEntry.filePath[7:-4]
+        group_prompt += "\n" + str(j + 1) + ". " + group.groupEntries[j].soundEntry.filePath[7:-4]
         if group.playRandomly:
             group_prompt += " - " + str(group.groupEntries[j].weight)
-    group_prompt += "\n\t" + str(number_of_entries+1) + ". Change Group Name\n\t" + str(number_of_entries+2) + \
-                    ". Change Hotkeys\n\t" + str(number_of_entries+3) + ". Change Play Style\n\t" + \
-                    str(number_of_entries+4) + ". Reorder Sounds\n\t" + str(number_of_entries+5) + \
-                    ". Back\nYour choice: "
+    group_prompt += "\n\t" + str(number_of_entries + 1) + ". Change Group Name\n\t" + str(number_of_entries + 2) + \
+                    ". Change Hotkeys\n\t" + str(number_of_entries + 3) + ". Change Play Style\n\t"
+    reorder = str(number_of_entries + 4) + ". Reorder Sounds"
+    if group.playRandomly:
+        reorder = grey_out(reorder)
+    group_prompt += reorder + "\n\t" + str(number_of_entries + 5)
+    group_prompt += ". Back\nYour choice: "
     return group_prompt
 
 
-def entry_editor_action():
+def entry_editor_action(entry_editor: MenuICPG, user_choice: str, group: Group, entry: GroupEntry):
     pass
 
 
-def soundboard_menu(group_list: list[Group], options: dict[str, Option]):
-    main_prompt = "-----\nWhat would you like to do?\n\t1. Change Sounds\n\t2. Change Settings\n" \
-                  "\t3. Save and Restart\n\t4. Cancel Pending Changes\n\t5. Quit\nYour choice: "
-    main = Menu(is_not_int, (1, 5), prompt=main_prompt)
-    group_chooser = main.add_child(is_not_int,
-                                   (1, len(group_list) + 2),
-                                   prompt_getter=make_group_chooser_prompt,
-                                   prompt_args=(group_list, options["Condense Sound Group Editor"].state),
-                                   action=group_chooser_action,
-                                   action_args=(group_list,))
-    entry_chooser = group_chooser.add_child(is_not_int, (),
-                                            prompt_getter=make_entry_chooser_prompt,
-                                            action=entry_chooser_action)
-    entry_editor = entry_chooser.add_child(is_not_int, ())
-    # for group in group_list:
-    #     group_menu = group_chooser.add_child(make_group_prompt(group), is_not_int, (1, 4), group_action)
-    #     group_menu.actionArgs = (group_menu,)
+def soundboard_menu(soundboard: Soundboard):
+    group_list = soundboard.groupList
+    options = soundboard.options
+    main_prompt = "-----\nWhat would you like to do?\n1. Change Sounds\n2. Change Settings\n" \
+                  "3. Save and Restart\n4. Cancel Pending Changes\n5. Quit\nYour choice: "
+    main = MenuIC(is_not_int_in_range, (1, 5), prompt=main_prompt)
+    group_chooser = MenuICPG(is_not_int_in_range,
+                             (1, len(group_list) + 2),
+                             prompt_getter=make_group_chooser_prompt,
+                             prompt_args=(group_list, options["Condense Sound Group Editor"].state),
+                             action=group_chooser_action,
+                             action_args=(group_list,))
+    main.add_child(group_chooser)
+    entry_chooser = MenuICPG(is_not_int_in_range, (), prompt_getter=make_entry_chooser_prompt,
+                             action=entry_chooser_action)
+    group_chooser.add_child(entry_chooser)
+    entry_editor = MenuIC()
+    entry_chooser.add_child(entry_editor)
+    enable_formatting()
     main.show_to_user()

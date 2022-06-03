@@ -1,4 +1,4 @@
-from keyboard import unhook_all_hotkeys
+from keyboard import unhook_all
 from threading import Thread
 from Soundboard import Soundboard, get_name_of_device
 from SoundboardMenuing import soundboard_menu
@@ -14,6 +14,6 @@ if __name__ == "__main__":
     else:
         s.hook_hotkeys()
     print("Ready!")
-    soundboard_menu(s.groupList, s.options)
+    soundboard_menu(s)
     s.userWantsToQuit = True
-    unhook_all_hotkeys()
+    unhook_all()

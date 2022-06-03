@@ -4,7 +4,7 @@ from os import listdir
 from pyaudio import PyAudio
 from threading import Timer as Thread_Timer
 from time import time
-from typing import Callable, Optional
+from typing import Optional
 from wave import Wave_read
 from Group import Group
 from GroupEntry import GroupEntry
