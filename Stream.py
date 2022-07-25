@@ -1,20 +1,19 @@
-from pyaudio import PyAudio
 from threading import Thread
 from time import time
-from typing import Callable, Optional
-from wave import open, Wave_read
-from Option import Option
+from wave import open
 
 
 class Stream:
     def __init__(self,
+                 sb,
                  device_index: int,
                  s_format: int, channels: int,
                  rate: int):
+        self.soundboard = sb
         self.format = s_format
         self.channels = channels
         self.rate = rate
-        self.stream = PyAudio().open(
+        self.stream = sb.pyAudio.open(
             output_device_index=device_index,
             format=self.format,
             channels=self.channels,
@@ -26,29 +25,26 @@ class Stream:
         self.playSoundThread = None
         self.wav = None
 
-    def play(self,
-             options: dict[str, Option],
-             get_current_sound_playing: Callable[[], Optional[Wave_read]],
-             are_all_sounds_stopped: Callable[[], bool]):
-        stop_all_sounds_with_new_sound = options['Stop All Sounds With New Sound'].state
+    def play(self):
+        options = self.soundboard.options
+        def stop(): return self.soundboard.stopAllSounds
+        current_sound = self.soundboard.currentSoundPlaying
+        new_sound_stop = options['Stop All Sounds With New Sound'].state
         chunk = options['Chunk Size'].state
         data = self.wav.readframes(chunk)
         self.isPlaying = True
-        while data:
+        while data and not stop() and not (new_sound_stop and self.wav is not current_sound):
             data = self.wav.readframes(chunk)
             self.stream.write(data)
-            if (are_all_sounds_stopped() or
-                    (stop_all_sounds_with_new_sound and
-                     self.wav is not get_current_sound_playing())):
-                break
         self.isPlaying = False
-        return
 
-    def get_play_thread(self,
-                        options: dict[str, Option],
-                        get_current_sound_playing: Callable[[], Optional[Wave_read]],
-                        are_all_sounds_stopped: Callable[[], bool]):
-        return Thread(target=self.play, args=(options, get_current_sound_playing, are_all_sounds_stopped))
+    def get_play_thread(self):
+        return Thread(target=self.play, args=())
 
     def set_wav(self, file_path):
         self.wav = open(file_path, 'rb')
+
+    def matches_info(self, s_format, channels, rate):
+        return (self.format == s_format and
+                self.channels == channels and
+                self.rate == rate)

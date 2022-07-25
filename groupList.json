@@ -1,17 +1,62 @@
 {
-    "example1":{ "playRandomly":true, "hotkeys":["ctrl+1", "ctrl+2"],
-        "sounds":[
-            {"name":"anime wow", "weight":3},
-            {"name":"windows error", "weight":7},
-            {"name":"sad trombone", "weight":40}
-        ] },
-    "example2":{ "playRandomly":false, "hotkeys":["ctrl+3"],
-        "sounds":[
-            {"name":"teleports behind you", "weight":1},
-            {"name":"bonk", "weight":69},
-            {"name":"bonk", "weight":69},
-            {"name":"bass sound effect", "weight":420}
-        ] },
-    "example3":{ "playRandomly":false, "hotkeys":["ctrl+4"],
-        "sounds":[{"name":"lil jon yeah", "weight":0.9}]}
+    "example1": {
+        "playRandomly": true,
+        "hotkeys": {
+            "ctrl+1": [29, 2]
+        },
+        "sounds": [
+            {
+                "path": "Example Sounds/anime wow.wav",
+                "weight": 1
+            },
+            {
+                "path": "Example Sounds/sad trombone.wav",
+                "weight": 10
+            },
+            {
+                "path": "Example Sounds/windows error.wav",
+                "weight": 25
+            },
+            {
+                "path": "Example Sounds",
+                "weight": 4
+            }
+        ]
+    },
+    "example2": {
+        "playRandomly": false,
+        "hotkeys": {
+            "ctrl+2": [29, 3]
+        },
+        "sounds": [
+            {
+                "path": "Example Sounds\\teleports behind you.wav",
+                "weight": 1
+            },
+            {
+                "path": "Example Sounds\\bonk.wav",
+                "weight": 70
+            },
+            {
+                "path": "Example Sounds\\bonk.wav",
+                "weight": 70
+            },
+            {
+                "path": "Example Sounds\\bass sound effect.wav",
+                "weight": 400
+            }
+        ]
+    },
+    "example3": {
+        "playRandomly": false,
+        "hotkeys": {
+            "ctrl+3": [29, 4]
+        },
+        "sounds": [
+            {
+                "path": "Example Sounds\\lil jon yeah.wav",
+                "weight": 1
+            }
+        ]
+    }
 }
