@@ -1,8 +1,5 @@
-from Entry import Entry
-
-
 class GroupEntry:
-    def __init__(self, entry: Entry, weight: float):
+    def __init__(self, entry, weight):
         self.soundEntry = entry
         self.exists = entry.exists
         self.weight = weight if entry.exists else 0

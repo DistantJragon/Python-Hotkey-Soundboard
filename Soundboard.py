@@ -5,8 +5,6 @@ from threading import Thread
 from keyboard import is_pressed as is_hotkey_pressed
 from pyaudio import PyAudio
 from time import time
-from typing import Optional
-from wave import Wave_read
 from Group import Group
 from Entry import Entry
 from Hotkey import Hotkey
@@ -24,18 +22,18 @@ def path_has_extension(path):
 
 class Soundboard:
     def __init__(self):
-        self.streamsList: list[list[Stream]] = []
+        self.streamsList = []
         self.hotkeyList = []
-        self.entryList: dict[str | Entry] = {}
-        self.groupList: list[Group] = []
-        self.options: dict[str | Option] = {}
+        self.entryList = {}
+        self.groupList = []
+        self.options = {}
         self.pyAudio = PyAudio()
         self.devices = {}
         number_of_devices = self.pyAudio.get_host_api_info_by_index(0).get('deviceCount')
         for i in range(number_of_devices):
             self.devices[i] = self.pyAudio.get_device_info_by_host_api_device_index(0, i).get('name')
         self.get_options()
-        self.currentSoundPlaying: Optional[Wave_read] = None
+        self.currentSoundPlaying = None
         self.stopThread = False
         self.timeAtLastPlay = time()
         self.stopAllSounds = False
@@ -88,7 +86,7 @@ class Soundboard:
         if group_entries is None:
             raise FileNotFoundError("groupList.json not found")
 
-    def find_or_create_stream_list_from_wav(self, wav) -> list[Stream]:
+    def find_or_create_stream_list_from_wav(self, wav):
         number_of_streams = self.options["Number Of Streams"].state
         temp_format = self.pyAudio.get_format_from_width(wav.getsampwidth())
         stream_list = self.find_matching_stream(temp_format,

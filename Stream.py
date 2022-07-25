@@ -4,11 +4,7 @@ from wave import open
 
 
 class Stream:
-    def __init__(self,
-                 sb,
-                 device_index: int,
-                 s_format: int, channels: int,
-                 rate: int):
+    def __init__(self, sb, device_index, s_format, channels, rate):
         self.soundboard = sb
         self.format = s_format
         self.channels = channels

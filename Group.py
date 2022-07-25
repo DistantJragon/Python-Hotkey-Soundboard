@@ -7,15 +7,12 @@ from SoundDirectory import SoundDirectory
 
 
 class Group:
-    def __init__(self,
-                 sb,
-                 name: str,
-                 play_randomly: bool = True):
+    def __init__(self, sb, name, play_randomly=True):
         self.soundboard = sb
         self.name = name
         self.playRandomly = play_randomly
-        self.hotkeys: list[Hotkey] = []
-        self.groupEntries: list[GroupEntry | SoundDirectory] = []
+        self.hotkeys = []
+        self.groupEntries = []
         self.weightSum = 0
         self.orderTracker = 0
 

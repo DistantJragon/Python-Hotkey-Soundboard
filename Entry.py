@@ -3,9 +3,7 @@ from wave import open
 
 
 class Entry:
-    def __init__(self,
-                 sb,
-                 file_path: str):
+    def __init__(self, sb, file_path):
         self.soundboard = sb
         self.filePath = file_path
         self.name = file_path.replace("/", "\\").split("\\")[-1][:-4]

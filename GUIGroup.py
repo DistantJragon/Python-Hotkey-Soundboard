@@ -8,10 +8,7 @@ from Group import Group
 
 
 class GUIGroup:
-    def __init__(self,
-                 root,
-                 group: Group = None,
-                 group_name: str = None):
+    def __init__(self, root, group=None, group_name=None):
         self.root = root
         trash = root.icons["trash"]
         back_arrow = root.icons["back"]
@@ -63,8 +60,8 @@ class GUIGroup:
         self.frm_entries.pack(fill="both", expand=True, side="left", padx=5)
         self.frm_hotkeys = ttk.Frame(master=self.frm_group_main, relief="sunken", borderwidth=2)
         self.frm_hotkeys.pack(fill="both", expand=True, side="left", padx=5)
-        self.entries: list[GUIEntry] = []
-        self.hotkeys: list[GUIHotkey] = []
+        self.entries = []
+        self.hotkeys = []
         self.queue_update_entries()
         self.queue_update_hotkeys()
         btn_add_hotkey = ttk.Button(master=self.frm_hotkeys, text="+", command=self.add_hotkey)

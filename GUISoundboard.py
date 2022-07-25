@@ -54,7 +54,7 @@ class GUISoundboard:
         self.icons = {"trash": tk.PhotoImage(file="Program Images/trash icon.png"),
                       "back": tk.PhotoImage(file="Program Images/arrow back.png"),
                       "refresh": tk.PhotoImage(file="Program Images/refresh.png")}
-        self.group_widgets: list[GUIGroup] = []
+        self.group_widgets = []
 
         btn_add_group = ttk.Button(self.frm_group_chooser,
                                    text="+",
@@ -158,8 +158,8 @@ class GUISoundboard:
         self.btn_save_var.set("Save")
 
     def make_group_widget(self,
-                          sb_group = None,
-                          group_name: str = None):
+                          sb_group=None,
+                          group_name=None):
         if sb_group is not None or group_name is not None:
             self.group_widgets.append(GUIGroup(self,
                                                sb_group,
