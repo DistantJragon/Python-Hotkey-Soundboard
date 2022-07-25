@@ -59,6 +59,6 @@ class Hotkey:
         detectThread = Thread(target=self.detect)
         detectThread.start()
 
-    def check_and_add_event(self, event: KeyboardEvent):
+    def check_and_add_event(self, event):
         if event.event_type == KEY_DOWN:
             self.events.append(event)

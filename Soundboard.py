@@ -63,7 +63,7 @@ class Soundboard:
             elif device_index_name != device_name:
                 self.options["Device"].state = [i for i, d in self.devices.items() if d == device_name][0]
 
-    def find_matching_stream(self, s_format: int, n_channels: int, rate: int):
+    def find_matching_stream(self, s_format, n_channels, rate):
         for unique_streams in self.streamsList:
             if unique_streams[0].matches_info(s_format, n_channels, rate):
                 return unique_streams
