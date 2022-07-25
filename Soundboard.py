@@ -48,27 +48,22 @@ class Soundboard:
         self.stopAllSounds = True
 
     def get_options(self):
-        options_and_info = None
-        try:
-            options_and_info = load(open("options.json"))
-        except FileNotFoundError:
-            input("options.json not found. Press enter to exit")
-            from sys import exit
-            exit(1)
-        for key, value in options_and_info.items():
-            self.options[key] = Option(key, value)
-        device_index = self.options["Device"].state
-        try:
-            device_index_name = self.pyAudio.get_device_info_by_host_api_device_index(0, device_index).get('name')
-        except TypeError:
-            device_index_name = "Default"
-        except OSError:
-            device_index_name = "Not found"
-        device_name = self.options["Device Name"].state
-        if device_name == "Default":
-            self.options["Device"].state = None
-        elif device_index_name != device_name:
-            self.options["Device"].state = [i for i, d in self.devices.items() if d == device_name][0]
+        with open("options.json") as options_file:
+            options_and_info = load(options_file)
+            for key, value in options_and_info.items():
+                self.options[key] = Option(key, value)
+            device_index = self.options["Device"].state
+            try:
+                device_index_name = self.pyAudio.get_device_info_by_host_api_device_index(0, device_index).get('name')
+            except TypeError:
+                device_index_name = "Default"
+            except OSError:
+                device_index_name = "Not found"
+            device_name = self.options["Device Name"].state
+            if device_name == "Default":
+                self.options["Device"].state = None
+            elif device_index_name != device_name:
+                self.options["Device"].state = [i for i, d in self.devices.items() if d == device_name][0]
 
     def find_matching_stream(self, s_format: int, n_channels: int, rate: int):
         for unique_streams in self.streamsList:
@@ -90,6 +85,8 @@ class Soundboard:
                         self.groupList[-1].add_directory(json_entry["path"], json_entry["weight"])
                     # else:
                     #     raise FileNotFoundError("File is not a folder or a WAV file")
+        if group_entries is None:
+            raise FileNotFoundError("groupList.json not found")
 
     def find_or_create_stream_list_from_wav(self, wav) -> list[Stream]:
         number_of_streams = self.options["Number Of Streams"].state

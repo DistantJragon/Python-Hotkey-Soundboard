@@ -45,6 +45,10 @@ class GUIEntry:
         lbl.pack(side="left", fill="x", expand=True)
         frm_space.pack(side="left")
         self.frm.pack(fill="x")
+        if not entry.exists:
+            lbl["style"] = "Red.TLabel"
+            spin_weight["state"] = "readonly"
+            spin_weight["increment"] = 0
 
     def select(self, _):
         root = self.guiGroup.root

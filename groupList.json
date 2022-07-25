@@ -2,7 +2,10 @@
     "example1": {
         "playRandomly": true,
         "hotkeys": {
-            "ctrl+1": [29, 2]
+            "ctrl+1": [
+                29,
+                2
+            ]
         },
         "sounds": [
             {
@@ -26,7 +29,10 @@
     "example2": {
         "playRandomly": false,
         "hotkeys": {
-            "ctrl+2": [29, 3]
+            "ctrl+2": [
+                29,
+                3
+            ]
         },
         "sounds": [
             {
@@ -50,7 +56,10 @@
     "example3": {
         "playRandomly": false,
         "hotkeys": {
-            "ctrl+3": [29, 4]
+            "ctrl+3": [
+                29,
+                4
+            ]
         },
         "sounds": [
             {

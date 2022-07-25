@@ -1,7 +1,11 @@
 {
     "Device": {
         "description": "Device",
-        "state": 13
+        "state": null
+    },
+    "Device Name": {
+        "description": "Device Name",
+        "state": "Default"
     },
     "Poll For Keyboard": {
         "description": "Polls keyboard instead of making a Windows hotkey. Could fix hotkeys not responding in some cases, like while gaming, but is more resource-intensive. Default: false",
@@ -31,10 +35,6 @@
     "Delay Before New Sound Can Play": {
         "description": "Prevents sounds from playing in a rapid-fire fashion. Default: 0.25",
         "state": 0.25
-    },
-    "Device Name": {
-        "description": "Device Name",
-        "state": "VAC In (VB-Audio Virtual Cable)"
     },
     "Chunk Size": {
         "description": "As I understand it, a buffer for pyAudio. This program defaults it to 2048. PyAudio defaulted it to 1024",

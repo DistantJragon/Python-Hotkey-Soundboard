@@ -20,7 +20,9 @@ class GUIGroup:
             self.name = tk.StringVar(value=group.name)
             self.playsRandomly = tk.BooleanVar(value=group.playRandomly)
         elif group_name is not None:
-            self.group = None
+            sb = root.soundboard
+            self.group = Group(sb, group_name)
+            sb.groupList.append(self.group)
             self.name = tk.StringVar(value=group_name)
             self.playsRandomly = tk.BooleanVar(value=True)
         else:
@@ -31,10 +33,10 @@ class GUIGroup:
         self.frame = ttk.Frame(master=root.frm_groups, padding=10, relief="ridge", borderwidth=2)
 
         frm_group_info = ttk.Frame(master=self.frame)
-        entry_group_name = ttk.Entry(frm_group_info,
-                                     textvariable=self.name,
-                                     justify="center")
-        entry_group_name.pack(side="left", fill="x", expand=True)
+        self.entry_group_name = ttk.Entry(frm_group_info,
+                                          textvariable=self.name,
+                                          justify="center")
+        self.entry_group_name.pack(side="left", fill="x", expand=True)
 
         self.name.trace_add("write", lambda *_: self.queue_rename())
 

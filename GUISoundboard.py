@@ -5,7 +5,6 @@ from TkinterDnD2 import *
 from GUIGroup import GUIGroup
 from GUIHotkey import GUIHotkey
 from GUIOption import GUIOption
-from Group import Group
 from Soundboard import Soundboard
 from ScrollableFrame import ScrollableFrame
 
@@ -28,6 +27,8 @@ class GUISoundboard:
         self.ttk_styling = ttk.Style()
         self.ttk_styling.configure("GreyedOut.TCheckbutton", foreground="#603030")
         self.ttk_styling.configure("Selected.TFrame", relief="raised")
+        self.ttk_styling.configure("Red.TLabel", foreground="red")
+        self.ttk_styling.configure("Red.TEntry", foreground="red")
         self.window.geometry("1080x720")
         self.window.bind("<Escape>", self.remove_selection)
         self.window.bind("<<DeleteGroup>>", self.delete_group)
@@ -69,15 +70,16 @@ class GUISoundboard:
         self.options = {}
         self.frm_group_chooser.pack(side="top")
         for name, option in s.options.items():
-            if name == "Device Name":
+            if name == "Device":
                 continue
             self.options[name] = GUIOption(self, option)
         devices = ["Default", *list(s.devices.values())]
-        self.options["Device"].value = tk.StringVar(value=s.options["Device Name"].state)
-        self.options["Device"].ui = ttk.Combobox(master=self.options["Device"].frm,
-                                                 values=devices,
-                                                 state="readonly",
-                                                 textvariable=self.options["Device"].value)
+        self.options["Device Name"].value = tk.StringVar(value=s.options["Device Name"].state)
+        self.options["Device Name"].ui = ttk.Combobox(master=self.options["Device Name"].frm,
+                                                      values=devices,
+                                                      state="readonly",
+                                                      textvariable=self.options["Device Name"].value)
+        self.options["Device Name"].lbl["text"] = "Device"
         self.options["Poll For Keyboard"].value = tk.BooleanVar(value=s.options["Poll For Keyboard"].state)
         self.options["Poll For Keyboard"].ui = ttk.Checkbutton(master=self.options["Poll For Keyboard"].frm,
                                                                variable=self.options["Poll For Keyboard"].value,
@@ -127,6 +129,7 @@ class GUISoundboard:
         for option in self.options.values():
             if option.ui is not None:
                 option.ui.pack(side="right")
+            option.add_trace_to_value()
         self.btn_save_var = tk.StringVar(value="Save")
         btn_save_options = ttk.Button(master=self.options_and_chooser,
                                       textvariable=self.btn_save_var,
@@ -149,12 +152,13 @@ class GUISoundboard:
             elif name == "\"Stop All Sounds\" Hotkey":
                 continue
             else:
-                self.soundboard.options[name].state = option.value.get()
+                option.update()
+                option.set_lbl()
         self.soundboard.save_options()
         self.btn_save_var.set("Save")
 
     def make_group_widget(self,
-                          sb_group: Group = None,
+                          sb_group = None,
                           group_name: str = None):
         if sb_group is not None or group_name is not None:
             self.group_widgets.append(GUIGroup(self,
@@ -256,6 +260,14 @@ class GUISoundboard:
     def rename_group(self, _):
         gui_group = self.groupsToRename[0]
         gui_group.group.name = gui_group.name.get()
+        name_list = {}
+        for gui_group in self.group_widgets:
+            if gui_group.name.get() in name_list.keys():
+                name_list[gui_group.name.get()].entry_group_name["style"] = "Red.TEntry"
+                gui_group.entry_group_name["style"] = "Red.TEntry"
+            else:
+                gui_group.entry_group_name["style"] = "TEntry"
+                name_list[gui_group.name.get()] = gui_group
         self.groupsToRename.pop(0)
 
     def update_options(self, _):

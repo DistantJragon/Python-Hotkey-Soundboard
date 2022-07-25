@@ -23,3 +23,13 @@ class GUIOption:
     def update(self):
         if self.value is not None:
             self.option.state = self.value.get()
+
+    def add_trace_to_value(self):
+        if self.value is not None:
+            self.value.trace_add("write", lambda *_: self.set_lbl())
+
+    def set_lbl(self):
+        if self.value is not None and self.value.get() != self.option.state:
+            self.lbl["style"] = "Red.TLabel"
+        else:
+            self.lbl["style"] = "TLabel"

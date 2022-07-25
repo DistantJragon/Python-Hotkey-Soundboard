@@ -12,4 +12,4 @@ if __name__ == "__main__":
     finally:
         unhook_all()
         s.stopThread = True
-        # s.save_groups()
+        s.save_groups()
