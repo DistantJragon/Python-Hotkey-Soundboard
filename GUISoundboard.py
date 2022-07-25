@@ -10,7 +10,7 @@ from ScrollableFrame import ScrollableFrame
 
 
 class GUISoundboard:
-    def __init__(self, s: Soundboard):
+    def __init__(self, s):
         self.soundboard = s
         self.selectedEntry = None
         self.entriesToUpdate = []
@@ -168,7 +168,7 @@ class GUISoundboard:
             raise ValueError("No group name or id given")
         return self.group_widgets[-1]
 
-    def add_group_name_to_group_chooser(self, group_name: str):
+    def add_group_name_to_group_chooser(self, group_name):
         cbx_values = list(self.cbx_group_chooser["values"])
         if group_name not in cbx_values:
             cbx_values.append(group_name)
@@ -176,7 +176,7 @@ class GUISoundboard:
             if self.cbx_group_chooser.get() == "":
                 self.cbx_group_chooser.current(0)
 
-    def remove_group_name_from_group_chooser(self, group_name: str):
+    def remove_group_name_from_group_chooser(self, group_name):
         cbx_values = list(self.cbx_group_chooser["values"])
         if group_name in cbx_values:
             cbx_values.remove(group_name)
@@ -296,7 +296,7 @@ class GUISoundboard:
             guiG.queue_update_entries()
 
 
-def max_plus_one(given_list: list):
+def max_plus_one(given_list):
     if len(given_list) == 0:
         return 0
     return max(given_list) + 1
