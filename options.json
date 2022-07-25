@@ -1,0 +1,43 @@
+{
+    "Device": {
+        "description": "Device",
+        "state": null
+    },
+    "Device Name": {
+        "description": "Device Name",
+        "state": "Default"
+    },
+    "Poll For Keyboard": {
+        "description": "Polls keyboard instead of making a Windows hotkey. Could fix hotkeys not responding in some cases, like while gaming, but is more resource-intensive. Default: false",
+        "state": false
+    },
+    "Polling Rate": {
+        "description": "Polling rate for keyboard in seconds if Poll For Keyboard is on. Default: 0.1",
+        "state": 0.1
+    },
+    "\"Stop All Sounds\" Hotkey": {
+        "description": "Default: ctrl+.",
+        "state": {
+            "ctrl+.": [
+                29,
+                52
+            ]
+        }
+    },
+    "Stop All Sounds With New Sound": {
+        "description": "Stops all sounds if a new sound plays. Default: false",
+        "state": false
+    },
+    "Number Of Streams": {
+        "description": "The maximum number of layers of sounds. Default: 3",
+        "state": 3
+    },
+    "Delay Before New Sound Can Play": {
+        "description": "Prevents sounds from playing in a rapid-fire fashion. Default: 0.25",
+        "state": 0.25
+    },
+    "Chunk Size": {
+        "description": "As I understand it, a buffer for pyAudio. This program defaults it to 2048. PyAudio defaulted it to 1024",
+        "state": 2048
+    }
+}

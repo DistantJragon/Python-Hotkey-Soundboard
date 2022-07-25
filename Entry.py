@@ -1,37 +1,45 @@
 from time import time
-from typing import Callable, Optional
-from wave import open, Wave_read
-from StreamList import StreamList
-from Option import Option
+from wave import open
 
 
 class Entry:
-    def __init__(self,
-                 file_name: str,
-                 get_stream_list: Callable[[Wave_read], StreamList]):
-        self.filePath = 'Sounds/' + file_name
-        self.wav = open(self.filePath, 'rb')
-        self.streamList = get_stream_list(self.wav)
+    def __init__(self, sb, file_path):
+        self.soundboard = sb
+        self.filePath = file_path
+        self.name = file_path.replace("/", "\\").split("\\")[-1][:-4]
+        try:
+            self.wav = open(file_path, 'rb')
+        except FileNotFoundError:
+            self.exists = False
+        else:
+            self.exists = True
+        self.streamList = None
+        self.refresh_stream_list()
 
-    def play(self,
-             options: dict[str, Option],
-             get_current_sound_playing: Callable[[], Optional[Wave_read]],
-             set_current_sound_playing: Callable[[Wave_read], None],
-             are_all_sounds_stopped: Callable[[], bool]):
-        for stream in self.streamList.streamList:
+    def play(self):
+        if not self.exists:
+            return
+        for stream in self.streamList:
             if not stream.isPlaying:
                 stream.set_wav(self.filePath)
-                set_current_sound_playing(stream.wav)
-                stream.playSoundThread = stream.get_play_thread(options,
-                                                                get_current_sound_playing,
-                                                                are_all_sounds_stopped)
+                self.soundboard.currentSoundPlaying = stream.wav
+                stream.playSoundThread = stream.get_play_thread()
                 stream.playSoundThread.start()
                 stream.isPlaying = True
                 stream.timeAtLastPlay = time()
-                print("Playing " + self.filePath)
                 return
-        print("Playing " + self.filePath)
-        earliest_stream = self.streamList.stream_with_earliest_play()
+        earliest_stream = self.stream_with_earliest_play()
         earliest_stream.set_wav(self.filePath)
-        set_current_sound_playing(earliest_stream.wav)
+        self.soundboard.currentSoundPlaying = earliest_stream.wav
         earliest_stream.timeAtLastPlay = time()
+
+    def stream_with_earliest_play(self):
+        earliest_stream = self.streamList[0]
+        for stream in self.streamList:
+            if stream.timeAtLastPlay < earliest_stream.timeAtLastPlay:
+                earliest_stream = stream
+        return earliest_stream
+
+    def refresh_stream_list(self):
+        if self.exists:
+            self.streamList = self.soundboard.find_or_create_stream_list_from_wav(self.wav)
