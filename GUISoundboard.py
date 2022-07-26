@@ -5,7 +5,6 @@ from TkinterDnD2 import *
 from GUIGroup import GUIGroup
 from GUIHotkey import GUIHotkey
 from GUIOption import GUIOption
-from Soundboard import Soundboard
 from ScrollableFrame import ScrollableFrame
 
 
@@ -147,14 +146,12 @@ class GUISoundboard:
     def save(self):
         self.btn_save_var.set("Saving...")
         for name, option in self.options.items():
-            if name == "Device":
-                self.soundboard.options["Device Name"].state = option.ui.get()
-            elif name == "\"Stop All Sounds\" Hotkey":
-                continue
-            else:
+            if name != "\"Stop All Sounds\" Hotkey":
                 option.update()
                 option.set_lbl()
         self.soundboard.save_options()
+        self.soundboard.restart()
+        self.options["Device Name"].ui.set(self.soundboard.options["Device Name"].state)
         self.btn_save_var.set("Save")
 
     def make_group_widget(self,

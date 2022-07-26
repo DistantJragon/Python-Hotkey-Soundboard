@@ -14,7 +14,6 @@ class Entry:
         else:
             self.exists = True
         self.streamList = None
-        self.refresh_stream_list()
 
     def play(self):
         if not self.exists:
