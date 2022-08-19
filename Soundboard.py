@@ -1,16 +1,15 @@
 from json import load, dumps
-from os.path import isdir
-from threading import Thread
-
 from keyboard import is_pressed as is_hotkey_pressed
+from os.path import isdir
 from pyaudio import PyAudio
+from threading import Thread
 from time import time
-from Group import Group
+
 from Entry import Entry
+from Group import Group
 from Hotkey import Hotkey
-from SoundDirectory import SoundDirectory
-from Stream import Stream
 from Option import Option
+from Stream import Stream
 
 
 def path_has_extension(path):
@@ -32,24 +31,26 @@ class Soundboard:
         number_of_devices = self.pyAudio.get_host_api_info_by_index(0).get('deviceCount')
         for i in range(number_of_devices):
             self.devices[i] = self.pyAudio.get_device_info_by_host_api_device_index(0, i).get('name')
-        self.get_options()
         self.currentSoundPlaying = None
         self.stopThread = False
         self.timeAtLastPlay = time()
         self.stopAllSounds = False
-        hk_name = list(self.options["\"Stop All Sounds\" Hotkey"].state.keys())[0]
-        hk_keys = list(self.options["\"Stop All Sounds\" Hotkey"].state.values())[0]
-        self.stopAllSoundsHotkey = Hotkey(hk_name, hk_keys)
+        self.stopAllSoundsHotkey = None
         self.runThread = None
 
     def set_stop_all_sounds_true(self):
         self.stopAllSounds = True
 
-    def get_options(self):
+    def update_options(self):
         with open("options.json") as options_file:
             options_and_info = load(options_file)
-            for key, value in options_and_info.items():
-                self.options[key] = Option(key, value)
+            if len(self.options) == 0:
+                for key, value in options_and_info.items():
+                    self.options[key] = Option(key, value)
+            else:
+                for key, value in options_and_info.items():
+                    self.options[key].state = value["state"]
+
             device_index = self.options["Device"].state
             try:
                 device_index_name = self.pyAudio.get_device_info_by_host_api_device_index(0, device_index).get('name')
@@ -62,6 +63,14 @@ class Soundboard:
                 self.options["Device"].state = None
             elif device_index_name != device_name:
                 self.options["Device"].state = [i for i, d in self.devices.items() if d == device_name][0]
+
+        hk_name = list(self.options["\"Stop All Sounds\" Hotkey"].state.keys())[0]
+        hk_keys = list(self.options["\"Stop All Sounds\" Hotkey"].state.values())[0]
+        if self.stopAllSoundsHotkey is None:
+            self.stopAllSoundsHotkey = Hotkey(hk_name, hk_keys)
+            self.hotkeyList.append(self.stopAllSoundsHotkey)
+        else:
+            self.stopAllSoundsHotkey.name, self.stopAllSoundsHotkey.keys = hk_name, hk_keys
 
     def find_matching_stream(self, s_format, n_channels, rate):
         for unique_streams in self.streamsList:
@@ -83,8 +92,6 @@ class Soundboard:
                         self.groupList[-1].add_directory(json_entry["path"], json_entry["weight"])
                     # else:
                     #     raise FileNotFoundError("File is not a folder or a WAV file")
-        if group_entries is None:
-            raise FileNotFoundError("groupList.json not found")
 
     def find_or_create_stream_list_from_wav(self, wav):
         number_of_streams = self.options["Number Of Streams"].state
@@ -155,9 +162,6 @@ class Soundboard:
         with open("options.json", "w") as options_file:
             options_file.write(dumps(options_dict, indent=4))
 
-    def options_were_changed(self):
-        pass
-
     def save_groups(self):
         groups_dict = {}
         for group in self.groupList:
@@ -184,8 +188,7 @@ class Soundboard:
         self.streamsList.clear()
         for group in self.groupList:
             for group_entry in group.groupEntries:
-                if type(group_entry) is SoundDirectory:
-                    group_entry.refresh_stream_list()
+                group_entry.refresh_stream_list()
 
     def set_device_to_default_and_refresh(self):
         self.options["Device"].state = None
@@ -193,6 +196,8 @@ class Soundboard:
         self.refresh_all_streams()
 
     def start(self):
+        self.update_options()
+        self.refresh_all_streams()
         if self.options["Poll For Keyboard"].state:
             self.runThread = Thread(target=self.poll_keyboard)
             self.runThread.start()
@@ -203,11 +208,8 @@ class Soundboard:
         if self.runThread is not None:
             self.stopThread = True
             self.runThread.join()
+            self.runThread = None
             self.stopThread = False
         for hotkey in self.hotkeyList:
             hotkey.unhook()
-        if self.options["Poll For Keyboard"].state:
-            self.runThread = Thread(target=self.poll_keyboard)
-            self.runThread.start()
-        else:
-            self.hook_all_hotkeys()
+        self.start()

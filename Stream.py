@@ -24,12 +24,11 @@ class Stream:
     def play(self):
         options = self.soundboard.options
         def stop(): return self.soundboard.stopAllSounds
-        current_sound = self.soundboard.currentSoundPlaying
         new_sound_stop = options['Stop All Sounds With New Sound'].state
         chunk = options['Chunk Size'].state
         data = self.wav.readframes(chunk)
         self.isPlaying = True
-        while data and not stop() and not (new_sound_stop and self.wav is not current_sound):
+        while data and not stop() and (not new_sound_stop or self.wav is self.soundboard.currentSoundPlaying):
             data = self.wav.readframes(chunk)
             self.stream.write(data)
         self.isPlaying = False
