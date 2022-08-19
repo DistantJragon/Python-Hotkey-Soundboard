@@ -16,7 +16,7 @@
         "state": 0.1
     },
     "\"Stop All Sounds\" Hotkey": {
-        "description": "Default: ctrl+.",
+        "description": "Press the refresh button next to the hotkey to rebind the hotkey. Default: ctrl+.",
         "state": {
             "ctrl+.": [
                 29,

@@ -1,7 +1,7 @@
 from threading import Thread
 from time import sleep
 
-from keyboard import add_hotkey, remove_hotkey, hook, KEY_DOWN, read_event, unhook, KeyboardEvent
+from keyboard import add_hotkey, remove_hotkey, hook, KEY_DOWN, read_event, unhook
 
 
 class Hotkey:

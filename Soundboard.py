@@ -1,15 +1,15 @@
 from json import load, dumps
-from os.path import isdir
-from threading import Thread
-
 from keyboard import is_pressed as is_hotkey_pressed
+from os.path import isdir
 from pyaudio import PyAudio
+from threading import Thread
 from time import time
-from Group import Group
+
 from Entry import Entry
+from Group import Group
 from Hotkey import Hotkey
-from Stream import Stream
 from Option import Option
+from Stream import Stream
 
 
 def path_has_extension(path):

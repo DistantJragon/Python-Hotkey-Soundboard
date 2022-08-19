@@ -1,11 +1,12 @@
 import tkinter as tk
 import tkinter.ttk as ttk
+
+from ScrollableFrame import ScrollableFrame
 from TkinterDnD2 import *
 
 from GUIGroup import GUIGroup
 from GUIHotkey import GUIHotkey
 from GUIOption import GUIOption
-from ScrollableFrame import ScrollableFrame
 
 
 class GUISoundboard:

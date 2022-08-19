@@ -1,6 +1,7 @@
 from keyboard import unhook_all
-from Soundboard import Soundboard
+
 from GUISoundboard import GUISoundboard
+from Soundboard import Soundboard
 
 if __name__ == "__main__":
     s = Soundboard()
