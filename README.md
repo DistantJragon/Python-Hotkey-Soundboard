@@ -29,6 +29,7 @@ from the dropdown box and pressing enter.
 ### Options
 Each option gives context when hovering over the option name with the cursor
 
+
 ### Start When The User Logs Into Windows
 
 You can have this program start when you log in to Windows via one of these methods:
